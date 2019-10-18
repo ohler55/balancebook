@@ -1,0 +1,7 @@
+;; -*- mode: outline; outline-regexp: " *[-\+]"; indent-tabs-mode: nil; fill-column: 120 -*-
+
+todo
+-----------
+
+- bin/bb
+- load file to classes and print

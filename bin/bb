@@ -1,0 +1,41 @@
+#!/usr/bin/env ruby
+
+while (index = ARGV.index('-I'))
+  _,path = ARGV.slice!(index, 2)
+  $: << path
+end
+
+# TBD tmp for testing
+$: << ::File.join(::File.dirname(__FILE__), "../../oj/lib")
+$: << ::File.join(::File.dirname(__FILE__), "../../oj/ext")
+$: << ::File.join(::File.dirname(__FILE__), "../../oterm/lib")
+$: << ::File.join(::File.dirname(__FILE__), "../lib")
+
+require 'optparse'
+
+require 'oj'
+require 'balancebook'
+
+$verbose = false
+
+opts = OptionParser.new(%{Usage: bb [options] <json_data_file>
+
+Does stuff...
+})
+opts.on('-v', 'verbose')                      { $verbose = true }
+opts.on('-h', '--help', 'Show this display')  { puts opts.help; Process.exit!(0) }
+files = opts.parse(ARGV)
+
+if 1 != files.size
+  puts opts.help
+  Process.exit!(0)
+end
+
+top = Oj.load_file(File.expand_path(files[0]), mode: :custom, create_additions: true )
+
+top.companies.each { |id,c|
+  puts "*** #{id}"
+  c.invoices.each { |_,inv|
+    puts "***   #{inv}"
+  }
+}
