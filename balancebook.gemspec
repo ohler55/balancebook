@@ -20,7 +20,7 @@ Gem::Specification.new do |s|
   s.rdoc_options = ['-t', 'BalanceBook', '-m', 'README.md', '-x', '"test/*"', '-x']
 
   s.bindir = 'bin'
-  s.executables << 'balancebook'
+  #s.executables << 'balancebook'
 
   s.required_ruby_version = '>= 2.6.4'
 
