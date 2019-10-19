@@ -18,6 +18,14 @@ require 'balancebook'
 
 $verbose = false
 
+# TBD look for config or -c option
+#  location of data file and any other options other than -c
+
+# TBD args are commands like 'report'
+# bb report late-penalty
+#  metod on invoice for days_to_pay
+#  if 90 <= d2p then calc penalty based on 1.5% / 30 days
+
 opts = OptionParser.new(%{Usage: bb [options] <json_data_file>
 
 Does stuff...
@@ -31,11 +39,12 @@ if 1 != files.size
   Process.exit!(0)
 end
 
-top = Oj.load_file(File.expand_path(files[0]), mode: :custom, create_additions: true )
+company = Oj.load_file(File.expand_path(files[0]))
 
-top.companies.each { |id,c|
-  puts "*** #{id}"
-  c.invoices.each { |_,inv|
-    puts "***   #{inv}"
-  }
+rep = BalanceBook::Report::LateReport.new(company)
+
+rep.display
+
+File.open("late.csv", 'w') { |f|
+  rep.csv(f)
 }

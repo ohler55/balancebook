@@ -3,7 +3,6 @@ module BalanceBook
 end
 
 require 'balancebook/version'
+require 'balancebook/model'
+require 'balancebook/report'
 require 'balancebook/book'
-require 'balancebook/company'
-require 'balancebook/invoice'
-require 'balancebook/payment'
