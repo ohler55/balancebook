@@ -2,3 +2,14 @@
 
 todo
 -----------
+
+- .balancebook.conf
+ - command line
+ - default locations and name
+ - see it work
+
+- report graphql signature in balancebook/report.rb
+
+
+- bbs
+ - graphql server

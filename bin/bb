@@ -6,10 +6,10 @@ while (index = ARGV.index('-I'))
 end
 
 # TBD tmp for testing
-$: << ::File.join(::File.dirname(__FILE__), "../../oj/lib")
-$: << ::File.join(::File.dirname(__FILE__), "../../oj/ext")
-$: << ::File.join(::File.dirname(__FILE__), "../../oterm/lib")
-$: << ::File.join(::File.dirname(__FILE__), "../lib")
+$: << ::File.join(File.dirname(__FILE__), "../../oj/lib")
+$: << ::File.join(File.dirname(__FILE__), "../../oj/ext")
+$: << ::File.join(File.dirname(__FILE__), "../../oterm/lib")
+$: << ::File.join(File.dirname(__FILE__), "../lib")
 
 require 'optparse'
 
@@ -17,6 +17,11 @@ require 'oj'
 require 'balancebook'
 
 $verbose = false
+$backups = 1
+$conf = nil
+$data = nil
+$rates = nil
+
 
 # TBD look for config or -c option
 #  location of data file and any other options other than -c
@@ -26,25 +31,88 @@ $verbose = false
 #  metod on invoice for days_to_pay
 #  if 90 <= d2p then calc penalty based on 1.5% / 30 days
 
-opts = OptionParser.new(%{Usage: bb [options] <json_data_file>
+opts = OptionParser.new(%{Usage: bb [options] <command> [<command args>...]
 
 Does stuff...
 })
-opts.on('-v', 'verbose')                      { $verbose = true }
-opts.on('-h', '--help', 'Show this display')  { puts opts.help; Process.exit!(0) }
-files = opts.parse(ARGV)
+opts.on('-v', 'verbose')                                                  { $verbose = true }
+opts.on('-c', '--conf String', String, 'configuration file')              { |f| $conf = f }
+opts.on('-b', '--backups Integer', Integer, 'number of backups to keep')  { |n| $backup = n }
+opts.on('-d', '--data String', String, 'company data file')               { |f| $data = f }
+opts.on('-r', '--rates String', String, 'exchange rate file')             { |f| $data = f }
+opts.on('-h', '--help', 'Show this display')                              { puts opts.help; Process.exit!(0) }
+cmds = opts.parse(ARGV)
 
-if 1 != files.size
+if cmds.size < 1
   puts opts.help
-  Process.exit!(0)
+  Process.exit!(1)
 end
 
-company = Oj.load_file(File.expand_path(files[0]))
+def process_conf(f)
+  f.each_line { |line|
+    line.strip!
+    next if line.size == 0 || line[0] == '#'
+    key, val = line.split('=')
+    next if val.nil?
+    key.strip!
+    val.strip!
+    keys = key.split('.')
+    case keys[0]
+    when 'company'
+      $data = val
+    when 'xrates'
+      $rates = val
+    when 'backups'
+      $backups = val.to_i
+    when 'account'
+      # TBD set up account information
+    else
+      raise StandardError.new("#{key} is not a valid configuration option.")
+    end
+  }
+end
 
-rep = BalanceBook::Report::LateReport.new(company)
+if $conf.nil?
+  # Attempt to open configuration file in order ./.balancebook.conf, ~/.balancebook.conf.
+  ['./.balancebook.conf', '~/.balancebook.conf'].each { |path|
+    begin
+      File.open(File.expand_path(path), 'r') { |f|
+	process_conf(f)
+      }
+    rescue Errno::ENOENT => e
+      # try the next one
+    rescue Exception => e
+      puts "\n*-*-* #{e.class}: #{e.message}\n\n"
+      Process.exit!(1)
+    end
+  }
+else
+  File.open(File.expand_path($conf), 'r') { |f|
+    process_conf(f)
+  }
+end
 
-rep.display
+if $data.nil?
+  puts '\n*-*-* No company data file specified.\n\n'
+  puts opts.help
+  Process.exit!(1)
+end
 
-File.open("late.csv", 'w') { |f|
-  rep.csv(f)
-}
+company = Oj.load_file(File.expand_path($data))
+
+case cmds[0]
+when 'report'
+  # TBD temporary
+  rep = BalanceBook::Report::LateReport.new(company)
+  rep.display
+when 'expense'
+  # TBD
+when 'invoice'
+  # TBD
+when 'show'
+  # TBD
+else
+  puts "\n*-*-* #{cmds[0]} is not a valid command.\n\n"
+  puts opts.help
+  Process.exit!(1)
+end
