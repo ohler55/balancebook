@@ -3,22 +3,8 @@
 todo
 -----------
 
-- .balancebook.conf
- - command line
- - default locations and name
- - see it work
-
-- report graphql signature in balancebook/report.rb
-
-
-- bbs
- - graphql server
-
-graphql
- - schema/root
-  - query
-   - company(name: String): Company # name is optional if just one, if blank then take only one
-    - reports (note the plural) # balancebook/reports.rb
-     - late(start: Time, end: Time, sortBy: String, customer: String): LateReport
-      - creates LateReport.new(company, args)
-      - rows: [LateRow]
+- handle args in report and in graphql
+- make oterm input screen
+ - form based or give up and just prompt for each value
+ - input/invoice
+  - just use simple readline and prompts

@@ -7,6 +7,7 @@ module BalanceBook
 
       attr_accessor :title
       attr_accessor :header
+      attr_accessor :rows
 
       # TBD add sort key(s)
 

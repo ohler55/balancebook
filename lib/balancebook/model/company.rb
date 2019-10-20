@@ -10,7 +10,6 @@ module BalanceBook
       attr_accessor :invoices
       attr_accessor :ledger
 
-
       def initialize(h)
 	@name = h['name']
 	@accounts = h['accounts']

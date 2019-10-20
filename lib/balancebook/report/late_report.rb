@@ -59,7 +59,7 @@ module BalanceBook
 	  row.submitted = inv.submitted
 	  row.amount = inv.amount
 	  row.paid = inv.paid
-	  row.daysTillPaid = inv.days_to_paid
+	  row.daysTillPaid = inv.days_to_paid || -1
 	  row.interest = pen
 	  add_row(row)
 	}

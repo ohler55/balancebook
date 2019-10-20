@@ -1,0 +1,57 @@
+type Query {
+  company: Company
+}
+
+type Company {
+  name: String!
+  accounts: [Account]
+  customers: [Customer]
+  invoices: [Invoice]
+  ledger: [Transaction]
+  reports: Reports
+}
+
+type Account {
+  name: String!
+}
+
+type Customer {
+  name: String!
+}
+
+type Invoice {
+  id: String!
+  submitted: Date
+  amount: Float
+  to: Customer
+  payments: [Payment]
+}
+
+type Payment {
+  account: Account
+  when: Date
+  amount: Float
+}
+
+type Transaction {
+  id: String!
+}
+
+type Reports {
+  late: LateReport
+}
+
+type LateReport {
+  rows: [LateRow]
+}
+
+type LateRow {
+  id: String!
+  submitted: Date
+  amount: Float
+  paid: String
+  daysTillPaid: Int
+  interest: Float
+}
+
+scalar Date
