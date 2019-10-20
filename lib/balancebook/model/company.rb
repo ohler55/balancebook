@@ -23,6 +23,10 @@ module BalanceBook
 	self.new(h)
       end
 
+      def reports
+	BalanceBook::Report::Reports.new(self)
+      end
+
     end # Company
   end # Model
 end # BalanceBook

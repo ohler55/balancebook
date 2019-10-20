@@ -7,3 +7,4 @@ end
 
 require 'balancebook/report/report'
 require 'balancebook/report/late_report'
+require 'balancebook/report/reports'

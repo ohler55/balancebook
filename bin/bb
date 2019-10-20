@@ -31,9 +31,15 @@ $rates = nil
 #  metod on invoice for days_to_pay
 #  if 90 <= d2p then calc penalty based on 1.5% / 30 days
 
+# TBD parse command then args of key=value
+
 opts = OptionParser.new(%{Usage: bb [options] <command> [<command args>...]
 
 Does stuff...
+
+commands:
+  reports <report name> [<arg>[=<value>]]...
+
 })
 opts.on('-v', 'verbose')                                                  { $verbose = true }
 opts.on('-c', '--conf String', String, 'configuration file')              { |f| $conf = f }
@@ -100,19 +106,39 @@ end
 
 company = Oj.load_file(File.expand_path($data))
 
-case cmds[0]
-when 'report'
-  # TBD temporary
-  rep = BalanceBook::Report::LateReport.new(company)
-  rep.display
-when 'expense'
+args = {}
+cmd = cmds[0]
+cmds[1..].each { |a|
+  k, v = a.split('=')
+  args[k.to_sym] = v
+}
+
+begin
+  case cmds[0]
+  when 'reports'
+    raise StandardError.new("No report specified.") if cmds.size < 2
+    rep = company.reports.send(cmds[1], args)
+    csv = args[:csv]
+    if csv.nil?
+      rep.display
+    else
+      File.open(csv, 'w') { |f|
+	rep.csv(f)
+      }
+    end
+  when 'expense'
   # TBD
-when 'invoice'
+  when 'invoice'
   # TBD
-when 'show'
+  when 'show'
   # TBD
-else
-  puts "\n*-*-* #{cmds[0]} is not a valid command.\n\n"
-  puts opts.help
-  Process.exit!(1)
+  else
+    puts "\n*-*-* #{cmds[0]} is not a valid command.\n\n"
+    puts opts.help
+    Process.exit!(1)
+  end
+rescue Exception => e
+  puts "\n*-*-* #{e.class}: #{e.message}"
+  e.backtrace.each { |line| puts "  #{line}" } if $verbose
+  puts
 end

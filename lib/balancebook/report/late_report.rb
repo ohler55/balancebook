@@ -3,19 +3,49 @@
 module BalanceBook
   module Report
 
+    class LateHeader
+
+      def self.id
+	'Invoice'
+      end
+
+      def self.submitted
+	'Submitted'
+      end
+
+      def self.amount
+	'Amount'
+      end
+
+      def self.paid
+	'Date Paid'
+      end
+
+      def self.daysTillPaid
+	'Days Till Paid'
+      end
+
+      def self.interest
+	'Interest'
+      end
+
+    end # LateRow
+
+    class LateRow
+
+      attr_accessor :id
+      attr_accessor :submitted
+      attr_accessor :amount
+      attr_accessor :paid
+      attr_accessor :daysTillPaid
+      attr_accessor :interest
+
+    end # LateRow
+
     class LateReport < Report
 
-      def initialize(company)
-	super('Late Invoice Payment Interest Calculations',
-	      { id: 'Invoice',
-		submitted: 'Submitted',
-		amount: 'Amount',
-		paid: 'Date Paid',
-		d2p: 'Days Till Paid',
-		interest: 'Interest',
-	      },
-	      [:id, :submitted, :amount, :paid, :d2p, :interest],
-	      '%14s  %10s  %10s  %10s  %14s  %10s')
+      def initialize(company, args={})
+	super('Late Invoice Payment Interest Calculations', LateHeader, [:id, :submitted, :amount, :paid, :daysTillPaid, :interest])
 
 	@day_rate = 0.015 * 12 / 365 # 1.5% per month
 
@@ -23,23 +53,20 @@ module BalanceBook
 	company.invoices.each { |inv|
 	  pen = penalty(inv.amount, inv.days_to_paid)
 	  total += pen
-	  add_row({
-		    id: inv.id,
-		    submitted: inv.submitted,
-		    amount: "$%0.2f" % [inv.amount],
-		    paid: inv.paid,
-		    d2p: inv.days_to_paid,
-		    interest: "$%0.2f" % [pen],
-		  })
+
+	  row = LateRow.new
+	  row.id = inv.id
+	  row.submitted = inv.submitted
+	  row.amount = inv.amount
+	  row.paid = inv.paid
+	  row.daysTillPaid = inv.days_to_paid
+	  row.interest = pen
+	  add_row(row)
 	}
-	add_row({
-		  id: 'Total',
-		  submitted: '',
-		  amount: '',
-		  paid: '',
-		  d2p: '',
-		  interest: "$%0.2f" % [total]
-		})
+	row = LateRow.new
+	row.id = 'Total'
+	row.interest = total
+	add_row(row)
 
       end
 

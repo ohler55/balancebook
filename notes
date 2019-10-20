@@ -13,3 +13,12 @@ todo
 
 - bbs
  - graphql server
+
+graphql
+ - schema/root
+  - query
+   - company(name: String): Company # name is optional if just one, if blank then take only one
+    - reports (note the plural) # balancebook/reports.rb
+     - late(start: Time, end: Time, sortBy: String, customer: String): LateReport
+      - creates LateReport.new(company, args)
+      - rows: [LateRow]
