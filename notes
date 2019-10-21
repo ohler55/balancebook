@@ -8,3 +8,30 @@ todo
  - form based or give up and just prompt for each value
  - input/invoice
   - just use simple readline and prompts
+
+- crud
+ - by object - invoice new ...
+ - or by op - new invoice ...
+  - more consistent with report xxx
+
+ - allow values to be provide like id=INV-20191111
+  - if provided they are not prompted for
+ - perform consitency checks
+  - referenced object exist like accounts, customer, ect
+
+- reports - generic or specific
+ - specific
+  - easy to get ID for operations on row object
+  - can implement things like filtering row for display based on hidden attributes
+  - can display items differently, boolean as checkbox for example or images for status
+ - generic
+  - use same display code
+  - need position indicator for ID
+  - need alignment indicator for each column
+   - basically need to pass more info about the table
+ - really come down to how to think about reports, are they generic or each custom
+
+ - list
+  - late
+  - P&L
+  -
