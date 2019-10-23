@@ -19,7 +19,7 @@ todo
  - perform consitency checks
   - referenced object exist like accounts, customer, ect
 
-- reports - generic or specific
+- reports - generic or *specific*
  - specific
   - easy to get ID for operations on row object
   - can implement things like filtering row for display based on hidden attributes
@@ -33,5 +33,62 @@ todo
 
  - list
   - late
+  - invoices
+  - payments
+  - accounts
+  - customers
+  - rates
+  - vendors
   - P&L
-  -
+  - transactions - mixed currencies
+   - all
+   - by account
+  - balance sheet by category
+  - income
+   - minus expenses by category
+   - by customer
+   - outstanding (invoices not yet paid)
+  - expense
+   - by category
+   - by vendor
+  - general ledger
+   - by category
+   - all normalized to currency
+  - sales tax
+  - currency exchange gain and loss
+
+- if generic
+type Row {
+  cells: [Cell]
+}
+
+type Cell {
+  key: String # optional?
+  int: Int
+  str: String
+  date: Date
+  float: Float
+  currency: Float
+  bool: Boolean
+}
+
+
+- from web, use invoice, accounts, etc for reports with some special cases for some reports
+- for console / terminal make special report for each
+- graphql to trigger csv generation - provide header, object, and fields in orde
+
+type Company {
+  " Returns filepath to download. "
+  classReport(class: String!, filter: Filter, header: [String], columns: [String]): String
+}
+
+Invoice {
+  report(filter: Fliter, columns: [Kv]) String
+}
+
+type Kv {
+  key: String
+  val: String # column header if an arg to report
+}
+
+report(columns: [ {key: "one", val: "First"}, ...])

@@ -29,7 +29,7 @@ $data = nil
 $rates = nil
 
 $port = 6600
-$root = File.expand_path(File.join(File.dirname(__FILE__), "../web"))
+$root = File.expand_path(File.join(File.dirname(__FILE__), "../public"))
 
 opts = OptionParser.new(%{Usage: bbs [options]
 
@@ -131,12 +131,15 @@ Agoo::Log.configure(dir: '',
 		      push: false,
 		    })
 
-File.open(File.expand_path(File.join(File.dirname(__FILE__), "../web/schema.graphql")), 'r') { |f|
+File.open(File.expand_path(File.join(File.dirname(__FILE__), "../public/schema.graphql")), 'r') { |f|
   $sdl = f.read
 }
 
 begin
   Agoo::Server.init($port, $root, thread_count: 1, graphql: '/graphql')
+
+  Agoo::Server.header_rule('schema.graphql', 'graphql', 'Content-Type', 'text/graphql');
+
   Agoo::Server.start()
   Agoo::GraphQL.schema(Schema.new(company)) {
     Agoo::GraphQL.load($sdl)

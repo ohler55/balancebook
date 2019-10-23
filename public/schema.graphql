@@ -9,6 +9,7 @@ type Company {
   invoices: [Invoice]
   ledger: [Transaction]
   reports: Reports
+  report(class: String!, filter: Filter, columns: [Column]): String
 }
 
 type Account {
@@ -35,6 +36,26 @@ type Payment {
 
 type Transaction {
   id: String!
+}
+
+type Column {
+  key: String
+  label: String
+}
+
+type Filter {
+  start: Date
+  end: Date
+  match: [Attr]
+}
+
+type Attr {
+  key: String!
+  int: Int
+  float: Float
+  str: String
+  bool: Boolean
+  date: Date
 }
 
 type Reports {
