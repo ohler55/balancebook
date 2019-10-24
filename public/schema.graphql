@@ -1,23 +1,73 @@
 type Query {
   company: Company
+  fx: Fx
+}
+
+type Fx {
+  currency(name: String!): Currency
+  currencies: [Currency]
+}
+
+type Currency {
+  rates(start: Date, end: Date): Rate
+  rate(date: Date): Rate
+}
+
+type Rate {
+  date: Date
+  rate: Float
 }
 
 type Company {
   name: String!
   accounts: [Account]
   customers: [Customer]
+  categories: [Category]
   invoices: [Invoice]
   ledger: [Transaction]
   reports: Reports
-  report(class: String!, filter: Filter, columns: [Column]): String
 }
 
 type Account {
   name: String!
+  bank: String
+  address: String
+  id: String
+  aba: String
+  kind: AccountType
+}
+
+enum AccountType {
+  CHECKING
+  SAVINGS
+  CASH
+}
+
+type BankTrans {
+  id: ID!
+  credit: Boolean!
+  date: Date!
+  amount: Float!
+  currency: String!
+  who: String
+  note: String
+  ledgerTrans: [ID]
 }
 
 type Customer {
   name: String!
+  contacts: [Person]
+  currency: String
+  address: String
+  country: String
+  notes: String
+}
+
+type Person {
+  name: String
+  role: String
+  email: String
+  phone: String
 }
 
 type Invoice {
@@ -35,12 +85,33 @@ type Payment {
 }
 
 type Transaction {
-  id: String!
+  id: ID!
+  credit: Boolean!
+  date: Date!
+  amount: Float!
+  who: String
+  account: ID!
+  category: ID!
+  tax: [TaxAmount]
+  acctTrans: ID
+  file: String
+  note: String
 }
 
-type Column {
-  key: String
-  label: String
+type Category {
+  id: ID!
+  name: String!
+}
+
+type Tax {
+  id: ID!
+  name: String!
+  percent: Float!
+}
+
+type TaxAmount {
+  tax: ID!
+  amount: Float
 }
 
 type Filter {
@@ -49,15 +120,13 @@ type Filter {
   match: [Attr]
 }
 
-type Attr {
-  key: String!
-  int: Int
-  float: Float
-  str: String
-  bool: Boolean
-  date: Date
-}
+scalar Date
 
+########################################################################
+
+# TBD late report is not one of the expected reports as it can be pulled
+# directly from Invoice fields. There may be others though so this is
+# temporary only.
 type Reports {
   late: LateReport
 }
@@ -75,4 +144,16 @@ type LateRow {
   interest: Float
 }
 
-scalar Date
+type Column {
+  key: String
+  label: String
+}
+
+type Attr {
+  key: String!
+  int: Int
+  float: Float
+  str: String
+  bool: Boolean
+  date: Date
+}

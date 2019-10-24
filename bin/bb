@@ -119,6 +119,14 @@ def save_company(c)
 end
 
 begin
+  BalanceBook::Cmd.run(cmds[0], cmds[1], args)
+rescue Exception => e
+  puts "\n*-*-* #{e.class}: #{e.message}"
+  e.backtrace.each { |line| puts "  #{line}" } if $verbose
+  puts
+end
+
+=begin
   case cmds[0]
   when 'reports'
     raise StandardError.new("No report specified.") if cmds.size < 2
@@ -149,3 +157,4 @@ rescue Exception => e
   e.backtrace.each { |line| puts "  #{line}" } if $verbose
   puts
 end
+=end

@@ -3,13 +3,18 @@
 todo
 -----------
 
-- handle args in report and in graphql
-- make oterm input screen
- - form based or give up and just prompt for each value
- - input/invoice
-  - just use simple readline and prompts
+- add classes for each schema type
+- decide on command handling
+ - verb type options/args
+ - separate cmd module
+  - handle parsing and switching in cmd
+   - Cmd.run(verb, type, args={})
 
-- crud
+- add input for each and start adding
+ - allow command line args to set fields
+
+
+- crud + list
  - by object - invoice new ...
  - or by op - new invoice ...
   - more consistent with report xxx
