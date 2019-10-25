@@ -3,6 +3,10 @@
 todo
 -----------
 
+- input classes
+ - validate values and lookup as needed
+ - check for duplicates
+
 - add classes for each schema type
 - decide on command handling
  - verb type options/args

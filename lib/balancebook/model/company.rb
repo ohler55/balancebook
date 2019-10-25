@@ -10,6 +10,7 @@ module BalanceBook
       attr_accessor :invoices
       attr_accessor :ledger
       attr_accessor :taxes
+      attr_accessor :start
 
       def reports
 	BalanceBook::Report::Reports.new(self)

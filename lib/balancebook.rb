@@ -2,9 +2,10 @@
 module BalanceBook
 end
 
-require 'balancebook/version'
+require 'balancebook/cmd'
+require 'balancebook/input'
 require 'balancebook/model'
 require 'balancebook/report'
-require 'balancebook/input'
+require 'balancebook/version'
 
 require 'balancebook/book'

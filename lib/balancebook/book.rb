@@ -102,14 +102,24 @@ module BalanceBook
     end
 
     def cmd_list(type, args)
-      puts "*** list #{type} #{args}"
+      case type
+      when 'fx', 'rate', 'rates'
+	Cmd::Fx.show(self, args)
+      when 'invoice', 'invoices'
+	Cmd::Invoice.list(self, args)
+      when 'account', 'accounts'
 	# TBD
-	#  invoice
-	#  account
-	#  transaction
-	#  category
-	#  tax
-	#  customer
+      when 'transaction', 'transactions', 'ledger'
+	# TBD
+      when 'category', 'categories'
+	# TBD
+      when 'tax', 'taxes'
+	# TBD
+      when 'customer', 'customers'
+	# TBD
+      else
+	raise StandardError.new("#{type} is not a valid type for a list command.")
+      end
     end
 
     def cmd_report(type, args)
