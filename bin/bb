@@ -18,47 +18,15 @@ require 'balancebook'
 
 $verbose = false
 $backups = 1
-$conf = nil
 $data = nil
-$rates = nil
-
-
-# TBD look for config or -c option
-#  location of data file and any other options other than -c
-
-# TBD args are commands like 'report'
-# bb report late-penalty
-#  metod on invoice for days_to_pay
-#  if 90 <= d2p then calc penalty based on 1.5% / 30 days
-
-# TBD parse command then args of key=value
-
-opts = OptionParser.new(%{Usage: bb [options] <command> [<command args>...]
-
-Does stuff...
-
-commands:
-  reports <report name> [<arg>[=<value>]]...
-
-})
-opts.on('-v', 'verbose')                                                  { $verbose = true }
-opts.on('-c', '--conf String', String, 'configuration file')              { |f| $conf = f }
-opts.on('-b', '--backups Integer', Integer, 'number of backups to keep')  { |n| $backup = n }
-opts.on('-d', '--data String', String, 'company data file')               { |f| $data = f }
-opts.on('-r', '--rates String', String, 'exchange rate file')             { |f| $data = f }
-opts.on('-h', '--help', 'Show this display')                              { puts opts.help; Process.exit!(0) }
-cmds = opts.parse(ARGV)
-
-if cmds.size < 1
-  puts opts.help
-  Process.exit!(1)
-end
+$fx_file = nil
+$fx_url = nil
 
 def process_conf(f)
   f.each_line { |line|
     line.strip!
     next if line.size == 0 || line[0] == '#'
-    key, val = line.split('=')
+    key, val = line.split('=', 2)
     next if val.nil?
     key.strip!
     val.strip!
@@ -66,8 +34,13 @@ def process_conf(f)
     case keys[0]
     when 'company'
       $data = val
-    when 'xrates'
-      $rates = val
+    when 'fx'
+      case keys[1]
+      when 'file'
+	$fx_file = val
+      when 'url'
+	$fx_url = val
+      end
     when 'backups'
       $backups = val.to_i
     when 'account'
@@ -78,24 +51,41 @@ def process_conf(f)
   }
 end
 
-if $conf.nil?
-  # Attempt to open configuration file in order ./.balancebook.conf, ~/.balancebook.conf.
-  ['./.balancebook.conf', '~/.balancebook.conf'].each { |path|
-    begin
-      File.open(File.expand_path(path), 'r') { |f|
-	process_conf(f)
-      }
-    rescue Errno::ENOENT => e
-      # try the next one
-    rescue Exception => e
-      puts "\n*-*-* #{e.class}: #{e.message}\n\n"
-      Process.exit!(1)
-    end
-  }
-else
-  File.open(File.expand_path($conf), 'r') { |f|
-    process_conf(f)
-  }
+# Attempt to open configuration file in order ./.balancebook.conf, ~/.balancebook.conf.
+['./.balancebook.conf', '~/.balancebook.conf'].each { |path|
+  begin
+    File.open(File.expand_path(path), 'r') { |f|
+      process_conf(f)
+    }
+  rescue Errno::ENOENT => e
+  # try the next one
+  rescue Exception => e
+    puts "\n*-*-* #{e.class}: #{e.message}\n\n"
+    Process.exit!(1)
+  end
+}
+
+opts = OptionParser.new(%{Usage: bb [options] <verb> <type> [<arg=value>...]
+
+Does stuff...
+
+verbs:
+
+  reports <report name> [<arg>[=<value>]]...
+
+})
+opts.on('-v', 'verbose')                                                  { $verbose = true }
+opts.on('-c', '--conf String', String, 'configuration file')              { |f| File.open(File.expand_path(f), 'r') { |f| process_conf(f) }}
+opts.on('-b', '--backups Integer', Integer, 'number of backups to keep')  { |n| $backups = n }
+opts.on('-d', '--data String', String, 'company data file')               { |f| $data = f }
+opts.on('-f', '--fx-file String', String, 'exchange rate file')           { |f| $fx_file = f }
+opts.on('-u', '--fx-url String', String, 'exchange rate URL')             { |u| $fx_url = u }
+opts.on('-h', '--help', 'Show this display')                              { puts opts.help; Process.exit!(0) }
+cmds = opts.parse(ARGV)
+
+if cmds.size < 2
+  puts opts.help
+  Process.exit!(1)
 end
 
 if $data.nil?
@@ -104,22 +94,14 @@ if $data.nil?
   Process.exit!(1)
 end
 
-company = Oj.load_file(File.expand_path($data))
-
-args = {}
-cmd = cmds[0]
-cmds[1..].each { |a|
-  k, v = a.split('=')
-  args[k.to_sym] = v
-}
-
-def save_company(c)
-  # TBD backup
-  Oj.to_file(File.expand_path($data), c, indent: 2)
-end
-
 begin
-  BalanceBook::Cmd.run(cmds[0], cmds[1], args)
+  book = BalanceBook::Book.new($data, $fx_file, $fx_url, $backups)
+  args = {}
+  cmds[2..].each { |a|
+    k, v = a.split('=')
+    args[k.to_sym] = v
+  }
+  book.cmd(cmds[0], cmds[1], args)
 rescue Exception => e
   puts "\n*-*-* #{e.class}: #{e.message}"
   e.backtrace.each { |line| puts "  #{line}" } if $verbose

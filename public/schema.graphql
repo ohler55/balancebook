@@ -21,6 +21,7 @@ type Rate {
 type Company {
   name: String!
   accounts: [Account]
+  taxes: [Tax]
   customers: [Customer]
   categories: [Category]
   invoices: [Invoice]
@@ -75,6 +76,7 @@ type Invoice {
   submitted: Date
   amount: Float
   to: Customer
+  tax: [TaxAmount]
   payments: [Payment]
 }
 

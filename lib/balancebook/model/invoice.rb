@@ -10,18 +10,7 @@ module BalanceBook
       attr_accessor :amount
       attr_accessor :to
       attr_accessor :payments
-
-      def initialize(h)
-	@id = h['id']
-	@submitted = h['submitted']
-	@amount = h['amount']
-	@to = h['to']
-	@payments = h['payments']
-      end
-
-      def self.json_create(h)
-	self.new(h)
-      end
+      attr_accessor :taxes
 
       def submit_date
 	Date.parse(@submitted)
@@ -52,6 +41,6 @@ module BalanceBook
 	((pt - t0) / 86400).to_i
       end
 
-    end # Invoice
-  end # Model
-end # BalanceBook
+    end
+  end
+end

@@ -9,21 +9,17 @@ module BalanceBook
       attr_accessor :customers
       attr_accessor :invoices
       attr_accessor :ledger
-
-      def initialize(h)
-	@name = h['name']
-	@accounts = h['accounts']
-	@customers = h['customers']
-	@invoices = h['invoices']
-	@ledger = h['ledger']
-      end
-
-      def self.json_create(h)
-	self.new(h)
-      end
+      attr_accessor :taxes
 
       def reports
 	BalanceBook::Report::Reports.new(self)
+      end
+
+      def find_tax(id)
+	@taxes.each { |tax|
+	  return tax if id == tax.id
+	}
+	nil
       end
 
     end # Company
