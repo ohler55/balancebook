@@ -3,19 +3,36 @@
 module BalanceBook
   module Model
 
-    class Invoice
+    class Invoice < Base
 
       attr_accessor :id
       attr_accessor :submitted
       attr_accessor :amount
       attr_accessor :to
       attr_accessor :payments
-      attr_accessor :taxes
+      attr_accessor :taxes # TaxAmount array
 
       def submit_date
 	Date.parse(@submitted)
       rescue Exception => e
 	nil
+      end
+
+      def validate(book)
+	raise StandardError.new("Invoice ID can not be empty.") unless !@id.nil? && 0 < @id.size
+	raise StandardError.new("Invoice amount of #{@amount} must be greater than 0.0.") unless 0.0 < @amount
+	validate_date('Invoice submitted date', @submitted)
+	cust = book.company.find_customer(@to)
+	raise StandardError.new("Invoice to of #{@to} not found.") if cust.nil?
+	@to = cust.id
+	raise StandardError.new("Invoice over paid #{@amount} < #{paid_amount}.") if @amount < paid_amount
+	unless @taxes.nil?
+	  @taxes.each { |ta|
+	    tax = book.company.find_tax(ta.tax)
+	    raise StandardError.new("Invoice  #{ta.tax} not found.") if tax.nil?
+	    ta.tax = tax
+	  }
+	end
       end
 
       def paid
@@ -31,6 +48,16 @@ module BalanceBook
 	  end
 	}
 	pd
+      end
+
+      def paid_amount
+	return 0.0 if @payments.nil?
+	sum = 0.0
+	@payments.each { |p|
+	  next if p.amount.nil?
+	  sum += p.amount
+	}
+	sum
       end
 
       def days_to_paid

@@ -10,14 +10,16 @@ module BalanceBook
     attr_accessor :fx_file
     attr_accessor :backups
     attr_accessor :data_file
+    attr_accessor :save_ok
 
-    def initialize(data_file, fx_file, fx_url, backups)
+    def initialize(data_file, fx_file, fx_url, backups, save_ok)
       @data_file = File.expand_path(data_file)
       @company = Oj.load_file(@data_file)
       @fx_file = File.expand_path(fx_file)
       @fx_url = fx_url
       @fx = Oj.load_file(@fx_file)
       @backups = backups
+      @save_ok = save_ok
     end
 
     def cmd(verb, type, args={})
@@ -42,9 +44,13 @@ module BalanceBook
     def cmd_new(type, args)
       case type
       when 'invoice'
-	inv = Input::Invoice.new(self)
-	@company.invoices << inv
-	save_company()
+	inv = Input::Invoice.new(self, args)
+	if @save_ok
+	  @company.invoices << inv
+	  save_company()
+	else
+	  puts Oj.dump(inv, indent: 2)
+	end
 	puts "\nInvoice #{inv.model.id} added.\n\n"
       else
 	puts "*** new #{type} #{args}"

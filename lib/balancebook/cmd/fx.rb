@@ -5,7 +5,7 @@ require 'date'
 module BalanceBook
   module Cmd
 
-    class Fx
+    class Fx < Base
 
       def self.show(book, args={})
 	p = args[:period]

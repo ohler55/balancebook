@@ -5,6 +5,6 @@ module BalanceBook
   end
 end
 
-require 'balancebook/cmd/cmd'
+require 'balancebook/cmd/base'
 require 'balancebook/cmd/fx'
 require 'balancebook/cmd/invoice'

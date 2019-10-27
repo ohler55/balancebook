@@ -5,7 +5,7 @@ require 'date'
 module BalanceBook
   module Cmd
 
-    class Cmd
+    class Base
 
       def self.extract_date_range(book, args)
 	p = args[:period]

@@ -5,4 +5,5 @@ module BalanceBook
   end
 end
 
+require 'balancebook/input/base'
 require 'balancebook/input/invoice'

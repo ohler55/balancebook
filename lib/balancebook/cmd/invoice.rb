@@ -5,7 +5,7 @@ require 'date'
 module BalanceBook
   module Cmd
 
-    class Invoice < Cmd
+    class Invoice < Base
 
       def self.show(book, args={})
 	puts "*** TBD show invoice"

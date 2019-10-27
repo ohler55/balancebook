@@ -17,8 +17,17 @@ module BalanceBook
       end
 
       def find_tax(id)
+	id = id.downcase
 	@taxes.each { |tax|
-	  return tax if id == tax.id
+	  return tax if id == tax.id.downcase
+	}
+	nil
+      end
+
+      def find_customer(id)
+	id = id.downcase
+	@customers.each { |c|
+	  return c if id == c.id.downcase || id == c.name.downcase
 	}
 	nil
       end

@@ -3,45 +3,29 @@
 module BalanceBook
   module Input
 
-    class Invoice
+    class Invoice < Base
 
       attr_accessor :model
 
-      def initialize(book)
+      def initialize(book, args)
 	puts "\nEnter information for a new Invoice"
 	@model = Model::Invoice.new
-	@model.id = read_str('ID')
-	@model.submitted = read_date('Submitted')
-	@model.to = read_str('To')
-	@model.amount = read_amount('Amount')
-	@model.taxes = read_taxes(book, 'Tax', @model.amount)
-      end
-
-      def read_str(label)
-	print("#{label}: ")
-	STDIN.readline.strip
-      end
-
-      def read_date(label)
-	print("#{label}: ")
-	v = STDIN.readline.strip
-	if 0 < v.size
-	  Date.parse(v) # just to verify
-	else
-	  v = Date.today.to_s
+	@model.id = args[:id] || read_str('ID')
+	@model.submitted = args[:submitted] || read_date('Submitted')
+	@model.to = args[:to] || read_str('To')
+	@model.amount = args[:amount] || read_amount('Amount')
+	@model.amount= @model.amount.to_f
+	tax = args[:tax] || read_str('Tax')
+	if 0 < tax.size
+	  ta = make_taxes(book, tax, @model.amount)
+	  puts taxes.map { |ta| "  %s: %0.2f" % [ta.tax, ta.amount] }.join('  ') if $verbose
+	  @model.taxes = ta
 	end
-	v
+	@model.validate(book)
       end
 
-      def read_amount(label)
-	print("#{label}: ")
-	v = STDIN.readline.strip
-	v.to_f
-      end
-
-      def read_taxes(book, label, amount)
-	print("#{label}: ")
-	ids = STDIN.readline.split(',').map { |id| id.strip }
+      def make_taxes(book, tax_input, amount)
+	ids = tax_input.split(',').map { |id| id.strip }
 
 	return nil if 0 == ids[0].size
 	taxes = []
@@ -53,7 +37,6 @@ module BalanceBook
 	  ta = Model::TaxAmount.new(id, (amount * tax.percent / (tax.percent + 100.0) * 100.0).to_i / 100.0)
 	  taxes << ta
 	}
-	puts taxes.map { |ta| "  %s: %0.2f" % [ta.tax, ta.amount] }.join('  ') if $verbose
 	taxes
       end
 

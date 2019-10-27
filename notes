@@ -3,9 +3,21 @@
 todo
 -----------
 
+- input/model/validate
+ - customer
+ - account
+ - category
+ - person
+ - payment
+ - bank (info into conf)
+ - tax
+ - transaction
+
+
 - input classes
  - validate values and lookup as needed
  - check for duplicates
+ - create account next
 
 - add classes for each schema type
 - decide on command handling
