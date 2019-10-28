@@ -13,6 +13,11 @@ module BalanceBook
 	@amount = amount
       end
 
+      def validate(book)
+	raise StandardError.new("Tax Amount tax of #{@tax} not found.") if book.company.find_tax(@tax)
+	raise StandardError.new("Tax amount of #{@amount} must be greater than or equal to 0.0.") unless 0.0 <= @amount
+      end
+
     end
   end
 end

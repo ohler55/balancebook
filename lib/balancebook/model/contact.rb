@@ -3,15 +3,20 @@
 module BalanceBook
   module Model
 
-    class Person
+    class Contact
 
+      attr_accessor :id
       attr_accessor :name
       attr_accessor :role
       attr_accessor :email
       attr_accessor :phone
 
-      def initialize(name)
-	@name = name
+      def initialize(id)
+	@id = id
+      end
+
+      def validate(book)
+	raise StandardError.new("Contact ID can not be empty.") unless !@id.nil? && 0 < @id.size
       end
 
     end

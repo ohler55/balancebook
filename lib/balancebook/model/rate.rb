@@ -13,6 +13,11 @@ module BalanceBook
 	@rate = r
       end
 
+      def validate(book)
+	raise StandardError.new("FX rate #{@rate} must be greater than 0.0.") unless 0.0 < @rate
+	validate_date('FX rate date', @date)
+      end
+
     end
   end
 end

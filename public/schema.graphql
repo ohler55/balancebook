@@ -57,16 +57,17 @@ type BankTrans {
 }
 
 type Customer {
-  id: String
+  id: ID
   name: String!
-  contacts: [Person]
+  contacts: [Contact]
   currency: String
   address: String
   country: String
   notes: String
 }
 
-type Person {
+type Contact {
+  id: ID!
   name: String
   role: String
   email: String

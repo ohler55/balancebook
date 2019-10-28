@@ -3,6 +3,24 @@
 todo
 -----------
 
+- implement all models in schema along with validation
+ + Fx
+ + Currency
+ + Rate
+ - Customer
+ + Contact
+ + Invoice
+ - Payment
+ + Category
+ + Tax
+ + TaxAmount
+ - Account
+ - BankTrans
+ - Transaction
+ - Company
+ - Query
+ - Mutation
+
 - input/model/validate
  - customer
  - account

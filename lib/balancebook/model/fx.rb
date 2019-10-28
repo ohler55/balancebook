@@ -11,6 +11,19 @@ module BalanceBook
       attr_accessor :base
       attr_accessor :currencies
 
+      def validate(book)
+	raise StandardError.new("Fx base can not be empty.") unless !@base.nil? && 0 < @base.size
+	@currencies.each { |c| c.validate(book) } unless @currencies.nil?
+      end
+
+      def find_currency(id)
+	id = id.upcase
+	@currencies.each { |c|
+	  return c if c.id == id
+	}
+	nil
+      end
+
       def update(book, args={})
 	first = extract_first(args)
 	last = extract_last(args)

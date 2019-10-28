@@ -12,12 +12,6 @@ module BalanceBook
       attr_accessor :payments
       attr_accessor :taxes # TaxAmount array
 
-      def submit_date
-	Date.parse(@submitted)
-      rescue Exception => e
-	nil
-      end
-
       def validate(book)
 	raise StandardError.new("Invoice ID can not be empty.") unless !@id.nil? && 0 < @id.size
 	raise StandardError.new("Invoice amount of #{@amount} must be greater than 0.0.") unless 0.0 < @amount
@@ -33,6 +27,12 @@ module BalanceBook
 	    ta.tax = tax
 	  }
 	end
+      end
+
+      def submit_date
+	Date.parse(@submitted)
+      rescue Exception => e
+	nil
       end
 
       def paid
