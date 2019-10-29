@@ -40,11 +40,11 @@ module BalanceBook
 	pd = nil
 	pt = nil
 	@payments.each { |p|
-	  next if p.when.nil?
-	  t = Date.parse(p.when).to_time.to_i
+	  next if p.date.nil?
+	  t = Date.parse(p.date).to_time.to_i
 	  if pt.nil? || pt < t
 	    pt = t
-	    pd = p.when
+	    pd = p.date
 	  end
 	}
 	pd

@@ -5,8 +5,9 @@ module BalanceBook
   end
 end
 
-require 'balancebook/model/account'
 require 'balancebook/model/base'
+require 'balancebook/model/account'
+require 'balancebook/model/bank_trans'
 require 'balancebook/model/category'
 require 'balancebook/model/company'
 require 'balancebook/model/contact'
@@ -18,3 +19,4 @@ require 'balancebook/model/payment'
 require 'balancebook/model/rate'
 require 'balancebook/model/tax'
 require 'balancebook/model/tax_amount'
+require 'balancebook/model/transaction'

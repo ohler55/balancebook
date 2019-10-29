@@ -11,6 +11,7 @@ module BalanceBook
     attr_accessor :backups
     attr_accessor :data_file
     attr_accessor :save_ok
+    attr_accessor :reports
 
     def initialize(data_file, fx_file, fx_url, backups, save_ok)
       @data_file = File.expand_path(data_file)
@@ -20,6 +21,7 @@ module BalanceBook
       @fx = Oj.load_file(@fx_file)
       @backups = backups
       @save_ok = save_ok
+      @reports = Report::Reports.new(self)
     end
 
     def cmd(verb, type, args={})
@@ -129,8 +131,15 @@ module BalanceBook
     end
 
     def cmd_report(type, args)
-	# TBD args are filters with a headers="foo,bar" cols="id,name"
-      puts "*** report #{type} #{args}"
+      rep = @reports.send(type, args)
+      csv = args[:csv]
+      if csv.nil?
+	rep.display
+      else
+	File.open(csv, 'w') { |f|
+	  rep.csv(f)
+	}
+      end
     end
 
     def save_fx

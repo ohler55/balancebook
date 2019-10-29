@@ -7,21 +7,24 @@ todo
  + Fx
  + Currency
  + Rate
- - Customer
+ + Customer
  + Contact
  + Invoice
- - Payment
+ + Payment
  + Category
  + Tax
  + TaxAmount
- - Account
- - BankTrans
- - Transaction
- - Company
+ + Account
+ + BankTrans
+ + Transaction
+ + Company
  - Query
  - Mutation
 
-- input/model/validate
+- Report (for graphql and for csv)
+
+
+- input
  - customer
  - account
  - category

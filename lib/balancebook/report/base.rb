@@ -3,7 +3,7 @@
 module BalanceBook
   module Report
 
-    class Report
+    class Base
 
       attr_accessor :title
       attr_accessor :header

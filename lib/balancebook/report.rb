@@ -5,6 +5,7 @@ module BalanceBook
   end
 end
 
-require 'balancebook/report/report'
-require 'balancebook/report/late_report'
+require 'balancebook/report/base'
+require 'balancebook/report/penalty_report'
+
 require 'balancebook/report/reports'

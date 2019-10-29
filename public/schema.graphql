@@ -37,6 +37,7 @@ type Account {
   id: String
   aba: String
   kind: AccountType
+  transactions: [BankTrans]
 }
 
 enum AccountType {
@@ -50,7 +51,6 @@ type BankTrans {
   credit: Boolean!
   date: Date!
   amount: Float!
-  currency: String!
   who: String
   note: String
   ledgerTrans: [ID]
@@ -127,20 +127,16 @@ type Filter {
 
 scalar Date
 
-########################################################################
-
-# TBD late report is not one of the expected reports as it can be pulled
-# directly from Invoice fields. There may be others though so this is
-# temporary only.
 type Reports {
-  late: LateReport
+  penalty: PenaltyReport
 }
 
-type LateReport {
-  rows: [LateRow]
+type PenaltyReport {
+  header: PenaltyHeader
+  rows: [PenaltyRow]
 }
 
-type LateRow {
+type PenaltyRow {
   id: String!
   submitted: Date
   amount: Float

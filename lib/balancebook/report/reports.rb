@@ -5,14 +5,16 @@ module BalanceBook
 
     class Reports
 
-      def initialize(company)
-	@company = company
+      attr_accessor :book
+
+      def initialize(book)
+	@book = book
       end
 
-      def late(args={})
-	LateReport.new(@company, args)
+      def penalty(args={})
+	PenaltyReport.new(@book, args)
       end
 
-    end # Report
-  end # Model
-end # BalanceBook
+    end
+  end
+end

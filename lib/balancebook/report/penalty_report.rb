@@ -3,11 +3,9 @@
 module BalanceBook
   module Report
 
-    class LateHeader
+    class PenaltyHeader
 
-      def self.id
-	'Invoice'
-      end
+      def self.id; 'Invoice'; end
 
       def self.submitted
 	'Submitted'
@@ -29,9 +27,9 @@ module BalanceBook
 	'Interest'
       end
 
-    end # LateRow
+    end
 
-    class LateRow
+    class PenaltyRow
 
       attr_accessor :id
       attr_accessor :submitted
@@ -40,21 +38,22 @@ module BalanceBook
       attr_accessor :daysTillPaid
       attr_accessor :interest
 
-    end # LateRow
+    end
 
-    class LateReport < Report
+    class PenaltyReport < Base
 
-      def initialize(company, args={})
-	super('Late Invoice Payment Interest Calculations', LateHeader, [:id, :submitted, :amount, :paid, :daysTillPaid, :interest])
+      def initialize(book, args={})
+	super('Penalty Invoice Payment Interest Calculations',
+	      PenaltyHeader, [:id, :submitted, :amount, :paid, :daysTillPaid, :interest])
 
 	@day_rate = 0.015 * 12 / 365 # 1.5% per month
 
 	total = 0.0
-	company.invoices.each { |inv|
+	book.company.invoices.each { |inv|
 	  pen = penalty(inv.amount, inv.days_to_paid)
 	  total += pen
 
-	  row = LateRow.new
+	  row = PenaltyRow.new
 	  row.id = inv.id
 	  row.submitted = inv.submitted
 	  row.amount = inv.amount
@@ -63,7 +62,7 @@ module BalanceBook
 	  row.interest = pen
 	  add_row(row)
 	}
-	row = LateRow.new
+	row = PenaltyRow.new
 	row.id = 'Total'
 	row.interest = total
 	add_row(row)
@@ -75,6 +74,6 @@ module BalanceBook
 	@day_rate * days * amount
       end
 
-    end # LateReport
-  end # Model
-end # BalanceBook
+    end
+  end
+end
