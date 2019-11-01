@@ -17,14 +17,14 @@ module BalanceBook
 	raise StandardError.new("Invoice amount of #{@amount} must be greater than 0.0.") unless 0.0 < @amount
 	validate_date('Invoice submitted date', @submitted)
 	cust = book.company.find_customer(@to)
-	raise StandardError.new("Invoice to of #{@to} not found.") if cust.nil?
+	raise StandardError.new("Customer #{@to} for invoice #{@id} not found.") if cust.nil?
 	@to = cust.id
-	raise StandardError.new("Invoice over paid #{@amount} < #{paid_amount}.") if @amount < paid_amount
+	raise StandardError.new("Invoice #{@id} over paid #{@amount} < #{paid_amount}.") if @amount < paid_amount
 	unless @taxes.nil?
 	  @taxes.each { |ta|
 	    tax = book.company.find_tax(ta.tax)
-	    raise StandardError.new("Invoice  #{ta.tax} not found.") if tax.nil?
-	    ta.tax = tax
+	    raise StandardError.new("Invoice tax #{ta.tax} not found.") if tax.nil?
+	    ta.tax = tax.id
 	  }
 	end
       end

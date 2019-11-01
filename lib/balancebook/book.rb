@@ -12,16 +12,23 @@ module BalanceBook
     attr_accessor :data_file
     attr_accessor :save_ok
     attr_accessor :reports
+    attr_accessor :acct_info
 
-    def initialize(data_file, fx_file, fx_url, backups, save_ok)
+    def initialize(data_file, fx_file, fx_url, backups, save_ok, acct_info)
       @data_file = File.expand_path(data_file)
       @company = Oj.load_file(@data_file)
+      @acct_info = acct_info
       @fx_file = File.expand_path(fx_file)
       @fx_url = fx_url
       @fx = Oj.load_file(@fx_file)
       @backups = backups
       @save_ok = save_ok
       @reports = Report::Reports.new(self)
+    end
+
+    def validate
+      @company.validate(self)
+      @fx.validate(self)
     end
 
     def cmd(verb, type, args={})
@@ -44,16 +51,11 @@ module BalanceBook
     end
 
     def cmd_new(type, args)
+      obj = nil
       case type
       when 'invoice'
-	inv = Input::Invoice.new(self, args)
-	if @save_ok
-	  @company.invoices << inv
-	  save_company()
-	else
-	  puts Oj.dump(inv, indent: 2)
-	end
-	puts "\nInvoice #{inv.model.id} added.\n\n"
+	obj = Cmd::Invoice.create(self, args)
+	@company.add_invoice(self, obj)
       else
 	puts "*** new #{type} #{args}"
 	# TBD
@@ -63,17 +65,27 @@ module BalanceBook
 	#  tax
 	#  customer
       end
+      unless obj.nil?
+	if @save_ok
+	  save_company()
+	else
+	  puts Oj.dump(obj, indent: 2)
+	end
+	puts "\n#{obj.class.to_s.split('::')[-1]} #{obj.id} added.\n\n"
+      end
     end
 
     def cmd_show(type, args)
       case type
       when 'fx'
-	@fx.show(self, args)
+	Cmd::Fx.show(self, args)
+	#@fx.show(self, args)
+      when 'account'
+	Cmd::Account.show(self, args)
       else
 	puts "*** show #{type} #{args}"
 	# TBD
 	#  invoice
-	#  account
 	#  transaction
 	#  category
 	#  tax
@@ -82,19 +94,28 @@ module BalanceBook
     end
 
     def cmd_update(type, args)
+      updated = nil
       case type
       when 'fx'
+	# TBD change to cmd?
 	@fx.update(self, args)
 	save_fx
+      when 'account'
+	updated = Cmd::Account.update(self, args)
       else
 	puts "*** update #{type} #{args}"
 	# TBD
 	#  invoice
-	#  account
 	#  transaction
 	#  category
 	#  tax
 	#  customer
+      end
+      if updated
+	if @save_ok
+	  save_company()
+	end
+	puts "\n#{updated} updated.\n\n"
       end
     end
 
@@ -102,7 +123,7 @@ module BalanceBook
       puts "*** del #{type} #{args}"
 	# TBD
 	#  invoice
-	#  account
+	#  account - only if not referenced by anything
 	#  transaction
 	#  category
 	#  tax
@@ -116,7 +137,7 @@ module BalanceBook
       when 'invoice', 'invoices'
 	Cmd::Invoice.list(self, args)
       when 'account', 'accounts'
-	# TBD
+	Cmd::Account.list(self, args)
       when 'transaction', 'transactions', 'ledger'
 	# TBD
       when 'category', 'categories'

@@ -5,7 +5,8 @@ require 'date'
 module BalanceBook
   module Cmd
 
-    class Fx < Base
+    class Fx
+      extend Base
 
       def self.show(book, args={})
 	first, last = extract_date_range(book, args)

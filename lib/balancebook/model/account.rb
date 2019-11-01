@@ -23,7 +23,7 @@ module BalanceBook
       def validate(book)
 	raise StandardError.new("Account ID can not be empty.") unless !@id.nil? && 0 < @id.size
 	raise StandardError.new("Account name can not be empty.") unless !@name.nil? && 0 < @name.size
-	raise StandardError.new("Account #{@kind} is not a valid.") unless [CHECKING, SAVINGS, CASH].include?(@kind)
+	raise StandardError.new("Account kind of '#{@kind}' is not valid.") unless [CHECKING, SAVINGS, CASH].include?(@kind)
 	unless @transactions.nil?
 	  dups = {}
 	  @transactions.each { |t|
@@ -32,6 +32,23 @@ module BalanceBook
 	    dups[t.id] = t
 	  }
 	end
+      end
+
+      def add_trans(t)
+	x = find_trans(t.id)
+	if x.nil?
+	  if @transactions.nil?
+	    @transactions = [t]
+	  else
+	    @transactions << t
+	  end
+	else
+	  # TBD verify no changes
+	end
+      end
+
+      def sort_trans
+	@transactions.sort_by { |t| t.date } unless @transactions.nil?
       end
 
       def find_trans(id)

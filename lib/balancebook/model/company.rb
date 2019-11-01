@@ -66,6 +66,14 @@ module BalanceBook
 	end
       end
 
+      def add_invoice(book, inv)
+	raise StandardError.new("Duplicate invoice #{inv.id}.") unless find_invoice(inv.id).nil?
+	inv.validate(book)
+	@invoices << inv
+	@invoices.sort_by { |inv| inv.submitted }
+      end
+
+      # TBD put somewhere else
       def reports
 	BalanceBook::Report::Reports.new(self)
       end
@@ -74,6 +82,14 @@ module BalanceBook
 	id = id.downcase
 	@taxes.each { |tax|
 	  return tax if id == tax.id.downcase
+	}
+	nil
+      end
+
+      def find_invoice(id)
+	id = id.downcase
+	@invoices.each { |inv|
+	  return inv if id == inv.id.downcase
 	}
 	nil
       end

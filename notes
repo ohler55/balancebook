@@ -3,6 +3,17 @@
 todo
 -----------
 
+- update account
+ - cmd
+  - file=
+  - id=
+  - use same approach as inputs
+  - Cmd::Base < Input::Base
+  - should input just be cmd? probably
+
+- account
+
+
 - implement all models in schema along with validation
  + Fx
  + Currency

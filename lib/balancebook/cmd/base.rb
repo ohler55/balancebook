@@ -5,9 +5,9 @@ require 'date'
 module BalanceBook
   module Cmd
 
-    class Base
+    module Base
 
-      def self.extract_date_range(book, args)
+      def extract_date_range(book, args)
 	p = args[:period]
 	if p.nil?
 	  [extract_first(book, args), extract_last(book, args)]
@@ -16,7 +16,7 @@ module BalanceBook
 	end
       end
 
-      def self.extract_first(book, args)
+      def extract_first(book, args)
 	early = args[:first]
 	if early.nil?
 	  Date.parse(book.company.start)
@@ -25,7 +25,7 @@ module BalanceBook
 	end
       end
 
-      def self.extract_last(book, args)
+      def extract_last(book, args)
 	last = args[:last]
 	if last.nil?
 	  Date.today
@@ -34,7 +34,7 @@ module BalanceBook
 	end
       end
 
-      def self.parse_period(p)
+      def parse_period(p)
 	year = p[0..3].to_i
 	if 4 < p.size
 	  raise StandardError.new("Invalid period '#{p}'.") if 'q' != p[4].downcase
@@ -61,6 +61,54 @@ module BalanceBook
 	today = Date.today
 	last = today if today < last
 	[first, last]
+      end
+
+      def read_str(label)
+	print("#{label}: ")
+	STDIN.readline.strip
+      end
+
+      def read_date(label)
+	print("#{label}: ")
+	v = STDIN.readline.strip
+	if 0 < v.size
+	  unless /^(19|20)\d\d[-.](0[1-9]|1[012])[-.](0[1-9]|[12][0-9]|3[01])$/.match?(date.to_s)
+	    raise StandardError.new("#{where} of #{date} did not match format YYY-MM-DD.")
+	  end
+	else
+	  v = Date.today.to_s
+	end
+	v
+      end
+
+      def read_amount(label)
+	print("#{label}: ")
+	v = STDIN.readline.strip
+	v.to_f
+      end
+
+      def read_str(label)
+	print("#{label}: ")
+	STDIN.readline.strip
+      end
+
+      def read_date(label)
+	print("#{label}: ")
+	v = STDIN.readline.strip
+	if 0 < v.size
+	  unless /^(19|20)\d\d[-.](0[1-9]|1[012])[-.](0[1-9]|[12][0-9]|3[01])$/.match?(date.to_s)
+	    raise StandardError.new("#{where} of #{date} did not match format YYY-MM-DD.")
+	  end
+	else
+	  v = Date.today.to_s
+	end
+	v
+      end
+
+      def read_amount(label)
+	print("#{label}: ")
+	v = STDIN.readline.strip
+	v.to_f
       end
 
     end

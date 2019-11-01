@@ -17,9 +17,11 @@ module BalanceBook
 	raise StandardError.new("Customer ID can not be empty.") unless !@id.nil? && 0 < @id.size
 	raise StandardError.new("Customer name can not be empty.") unless !@name.nil? && 0 < @name.size
 	raise StandardError.new("Customer currency #{@currency} not found.") if book.fx.find_currency(@currency).nil?
-	@contacts.each { |c|
-	  raise StandardError.new("Customer contact #{@c.id} not found.") if book.company.find_contact(@c.id).nil?
-	}
+	unless @contacts.nil?
+	  @contacts.each { |c|
+	    raise StandardError.new("Customer contact #{@c.id} not found.") if book.company.find_contact(@c.id).nil?
+	  }
+	end
       end
 
     end

@@ -8,6 +8,10 @@ module BalanceBook
       attr_accessor :id
       attr_accessor :rates
 
+      def initialize(id)
+	@id = id
+      end
+
       def validate(book)
 	raise StandardError.new("Currency ID can not be empty.") unless !@id.nil? && 0 < @id.size
 	@rates.each { |r| r.validate(book) } unless @rates.nil?

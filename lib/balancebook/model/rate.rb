@@ -3,7 +3,7 @@
 module BalanceBook
   module Model
 
-    class Rate
+    class Rate < Base
 
       attr_accessor :date
       attr_accessor :rate

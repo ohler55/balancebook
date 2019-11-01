@@ -17,6 +17,7 @@ module BalanceBook
       end
 
       def find_currency(id)
+	return Model::Currency.new(@base) if id == @base
 	id = id.upcase
 	@currencies.each { |c|
 	  return c if c.id == id
