@@ -5,16 +5,16 @@ module BalanceBook
 
     class Category
 
-      attr_accessor :id
       attr_accessor :name
 
-      def initialize(id, name)
-	@id = id
+      def initialize(name)
 	@name = name
       end
 
+      alias :id :name
+
       def validate(book)
-	raise StandardError.new("Category ID can not be empty.") unless !@id.nil? && 0 < @id.size
+	raise StandardError.new("Category name can not be empty.") unless !@name.nil? && 0 < @name.size
       end
 
     end

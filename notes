@@ -3,6 +3,14 @@
 todo
 -----------
 
+- category
+ - do all cmds
+  - show for all
+  - list
+  - create
+  - update
+  - delete
+
 - update account
  - cmd
   - file=
@@ -13,6 +21,36 @@ todo
 
 - account
 
+- categories
+Accounting Fees
+Bank Service Charges
+Bank Transfer
+Computer Hardware
+Hosting
+Software
+Internet
+Employer Taxes
+Liability Insurance
+Entertainment
+Office Supplies
+Professional Fees
+T2 Withholding
+HST
+GST
+Phone
+Transportation
+FX
+Owner
+Payroll State PIT
+Payroll State SDI
+Payroll State ETT
+Payroll State UI
+Payroll USA FICA
+Payroll USA SS
+Payroll USA Tax
+Payroll Salary
+
+also various taxes for FTB and IRS
 
 - implement all models in schema along with validation
  + Fx

@@ -7,6 +7,7 @@ module BalanceBook
 
       attr_accessor :id
       attr_accessor :rates
+      attr_accessor :symbol
 
       def initialize(id)
 	@id = id

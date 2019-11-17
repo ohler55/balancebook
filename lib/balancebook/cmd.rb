@@ -7,6 +7,7 @@ end
 
 require 'balancebook/cmd/base'
 require 'balancebook/cmd/account'
+require 'balancebook/cmd/category'
 require 'balancebook/cmd/fx'
 require 'balancebook/cmd/invoice'
 require 'balancebook/cmd/ofx'

@@ -33,13 +33,13 @@ module BalanceBook
 
     def cmd(verb, type, args={})
       case verb
-      when 'new'
+      when 'new', 'create'
 	cmd_new(type, args)
       when 'show'
 	cmd_show(type, args)
       when 'update'
 	cmd_update(type, args)
-      when 'del'
+      when 'delete', 'del'
 	cmd_del(type, args)
       when 'list'
 	cmd_list(type, args)
@@ -55,13 +55,15 @@ module BalanceBook
       case type
       when 'invoice'
 	obj = Cmd::Invoice.create(self, args)
-	@company.add_invoice(self, obj)
+	@company.add_invoice(self, obj) unless obj.nil?
+      when 'category', 'cat'
+	obj = Cmd::Category.create(self, args)
+	@company.add_category(self, obj) unless obj.nil?
       else
 	puts "*** new #{type} #{args}"
 	# TBD
 	#  account
 	#  transaction
-	#  category
 	#  tax
 	#  customer
       end
@@ -79,15 +81,14 @@ module BalanceBook
       case type
       when 'fx'
 	Cmd::Fx.show(self, args)
-	#@fx.show(self, args)
       when 'account'
 	Cmd::Account.show(self, args)
+      when 'invoice'
+	Cmd::Invoice.show(self, args)
       else
 	puts "*** show #{type} #{args}"
 	# TBD
-	#  invoice
 	#  transaction
-	#  category
 	#  tax
 	#  customer
       end
@@ -107,7 +108,6 @@ module BalanceBook
 	# TBD
 	#  invoice
 	#  transaction
-	#  category
 	#  tax
 	#  customer
       end
@@ -120,7 +120,12 @@ module BalanceBook
     end
 
     def cmd_del(type, args)
-      puts "*** del #{type} #{args}"
+      updated = nil
+      case type
+      when 'category', 'cat'
+	updated = Cmd::Category.delete(self, args)
+      else
+	puts "*** del #{type} #{args}"
 	# TBD
 	#  invoice
 	#  account - only if not referenced by anything
@@ -128,6 +133,13 @@ module BalanceBook
 	#  category
 	#  tax
 	#  customer
+      end
+      if updated
+	if @save_ok
+	  save_company()
+	end
+	puts "\n#{@company.name} saved.\n\n"
+      end
     end
 
     def cmd_list(type, args)
@@ -141,6 +153,7 @@ module BalanceBook
       when 'transaction', 'transactions', 'ledger'
 	# TBD
       when 'category', 'categories'
+	Cmd::Category.list(self, args)
 	# TBD
       when 'tax', 'taxes'
 	# TBD

@@ -9,7 +9,29 @@ module BalanceBook
       extend Base
 
       def self.show(book, args={})
-	puts "*** TBD show invoice"
+	id = args[:id]
+	inv = book.company.find_invoice(id)
+	raise StandardError.new("Failed to find invoice #{id}.") if inv.nil?
+	cur = book.fx.find_currency(inv.currency)
+
+	puts "\nID: #{inv.id}"
+	puts "To: #{inv.to}"
+	puts "Submitted: #{inv.submitted}"
+	puts "Currency: #{inv.currency}"
+	puts "Amount: #{cur.symbol}#{inv.amount}"
+	unless inv.taxes.nil?
+	  puts "Taxes:"
+	  inv.taxes.each { |ta|
+	    puts "  #{ta.tax}: #{cur.symbol}#{ta.amount}"
+	  }
+	end
+	unless inv.payments.nil?
+	  puts "Payments:"
+	  inv.payments.each { |p|
+	    puts "  #{cur.symbol}#{p.amount} on #{p.date}"
+	  }
+	end
+	puts
       end
 
       def self.list(book, args={})

@@ -11,6 +11,7 @@ module BalanceBook
       attr_accessor :to
       attr_accessor :payments
       attr_accessor :taxes # TaxAmount array
+      attr_accessor :currency
 
       def validate(book)
 	raise StandardError.new("Invoice ID can not be empty.") unless !@id.nil? && 0 < @id.size

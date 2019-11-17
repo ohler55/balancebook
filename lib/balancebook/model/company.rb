@@ -12,6 +12,7 @@ module BalanceBook
       attr_accessor :taxes
       attr_accessor :contacts
       attr_accessor :start
+      attr_accessor :categories
 
       def validate(book)
 	validate_date('Company start date', @start)
@@ -73,6 +74,23 @@ module BalanceBook
 	@invoices.sort_by { |inv| inv.submitted }
       end
 
+      def add_category(book, cat)
+	raise StandardError.new("Duplicate category #{cat.name}.") unless find_category(cat.name).nil?
+	@categories << cat
+	@categories.sort_by { |cat| cat.name }
+      end
+
+      def cat_used?(id)
+	@ledger.each { |t|
+	  return true if t.category == id
+	}
+	false
+      end
+
+      def cat_del(id)
+	@categories.reject! { |cat| cat.name == id }
+      end
+
       # TBD put somewhere else
       def reports
 	BalanceBook::Report::Reports.new(self)
@@ -82,6 +100,14 @@ module BalanceBook
 	id = id.downcase
 	@taxes.each { |tax|
 	  return tax if id == tax.id.downcase
+	}
+	nil
+      end
+
+      def find_category(id)
+	id = id.downcase
+	@categories.each { |cat|
+	  return cat if id == cat.name.downcase
 	}
 	nil
       end
