@@ -10,7 +10,7 @@ module BalanceBook
 
       def initialize(tax, amount)
 	@tax = tax
-	@amount = amount
+	@amount = (amount * 100.0).to_i.to_f * 0.01
       end
 
       def validate(book)

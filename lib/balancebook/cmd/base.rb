@@ -87,17 +87,18 @@ module BalanceBook
 	v.to_f
       end
 
-      def read_str(label)
+      def read_float(label)
 	print("#{label}: ")
-	STDIN.readline.strip
+	v = STDIN.readline.strip
+	v.to_f
       end
 
       def read_date(label)
 	print("#{label}: ")
 	v = STDIN.readline.strip
 	if 0 < v.size
-	  unless /^(19|20)\d\d[-.](0[1-9]|1[012])[-.](0[1-9]|[12][0-9]|3[01])$/.match?(date.to_s)
-	    raise StandardError.new("#{where} of #{date} did not match format YYY-MM-DD.")
+	  unless /^(19|20)\d\d[-.](0[1-9]|1[012])[-.](0[1-9]|[12][0-9]|3[01])$/.match?(v)
+	    raise StandardError.new("#{v} did not match format YYYY-MM-DD.")
 	  end
 	else
 	  v = Date.today.to_s

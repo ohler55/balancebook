@@ -71,13 +71,24 @@ module BalanceBook
 	raise StandardError.new("Duplicate invoice #{inv.id}.") unless find_invoice(inv.id).nil?
 	inv.validate(book)
 	@invoices << inv
-	@invoices.sort_by { |inv| inv.submitted }
+	@invoices.sort_by! { |inv| inv.submitted }
       end
 
       def add_category(book, cat)
 	raise StandardError.new("Duplicate category #{cat.name}.") unless find_category(cat.name).nil?
 	@categories << cat
-	@categories.sort_by { |cat| cat.name }
+	@categories.sort_by! { |cat| cat.name }
+      end
+
+      def add_tax(book, tax)
+	raise StandardError.new("Duplicate tax #{tax.id}.") unless find_tax(tax.id).nil?
+	@taxes << tax
+	@taxes.sort_by! { |tax| tax.id }
+      end
+
+      def add_tx(book, t)
+	@ledger << t
+	@ledger.sort_by! { |t| t.date }
       end
 
       def cat_used?(id)
@@ -87,8 +98,26 @@ module BalanceBook
 	false
       end
 
+      def tax_used?(id)
+	@ledger.each { |t|
+	  return true if t.tax == id
+	}
+	@invoices.each { |inv|
+	  unless inv.taxes.nil?
+	    inv.taxes.each { |ta|
+	      return true if ta.tax == id
+	    }
+	  end
+	}
+	false
+      end
+
       def cat_del(id)
 	@categories.reject! { |cat| cat.name == id }
+      end
+
+      def tax_del(id)
+	@taxes.reject! { |tax| tax.id == id }
       end
 
       # TBD put somewhere else
@@ -137,9 +166,8 @@ module BalanceBook
       end
 
       def find_trans(id)
-	id = id.downcase
 	@ledger.each { |t|
-	  return t if id == t.id.downcase
+	  return t if id == t.id
 	}
 	nil
       end
@@ -151,6 +179,16 @@ module BalanceBook
 	}
 	nil
       end
+
+      def gen_tx_id
+	max = @ledger.size
+	@ledger.each { |t|
+	  max = t.id if max < t.id
+	}
+	max + 1
+      end
+
+
 
     end # Company
   end # Model

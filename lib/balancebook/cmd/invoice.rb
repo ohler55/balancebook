@@ -16,9 +16,10 @@ module BalanceBook
 
 	puts "\nID: #{inv.id}"
 	puts "To: #{inv.to}"
+	puts "PO: #{inv.po}"
 	puts "Submitted: #{inv.submitted}"
-	puts "Currency: #{inv.currency}"
 	puts "Amount: #{cur.symbol}#{inv.amount}"
+	puts "Currency: #{inv.currency}"
 	unless inv.taxes.nil?
 	  puts "Taxes:"
 	  inv.taxes.each { |ta|
@@ -35,13 +36,20 @@ module BalanceBook
       end
 
       def self.list(book, args={})
+	table = Table.new('Invoices', [
+			  Col.new('ID', -16, :id, nil),
+			  Col.new('To', -16, :to, nil),
+			  Col.new('Amount', 10, :amount, '%.2f'),
+			  Col.new('Cur', 3, :currency, nil),
+			  Col.new('Submitted', -10, :submitted, nil),
+			  Col.new('Paid On', -10, :paid, nil),
+			  ])
+
 	first, last = extract_date_range(book, args)
 	paid = args[:paid]
 	paid = paid.downcase == "true" unless paid.nil?
 	cust = args[:cust] || args[:customer]
 
-	puts "\nInvoices"  if $verbose
-	puts "ID            To              Amount  Submitted   Paid On"
 	book.company.invoices.each { |inv|
 	  date = Date.parse(inv.submitted)
 	  next if date < first || last < date
@@ -51,10 +59,9 @@ module BalanceBook
 	    next if !paid && !ip.nil?
 	  end
 	  next if !cust.nil? && cust != inv.to
-
-	  puts "%-10s  %-10s  %10.2f  %-10s  %-10s" % [inv.id, inv.to, inv.amount, inv.submitted, inv.paid]
+	  table.add_row(inv)
 	}
-	puts
+	table.display
       end
 
       def self.create(book, args)

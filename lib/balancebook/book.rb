@@ -59,12 +59,16 @@ module BalanceBook
       when 'category', 'cat'
 	obj = Cmd::Category.create(self, args)
 	@company.add_category(self, obj) unless obj.nil?
+      when 'tax'
+	obj = Cmd::Tax.create(self, args)
+	@company.add_tax(self, obj) unless obj.nil?
+      when 'transaction', 'trans', 'ledger', 'tx'
+	obj = Cmd::Ledger.create(self, args)
+	@company.add_tx(self, obj) unless obj.nil?
       else
 	puts "*** new #{type} #{args}"
 	# TBD
 	#  account
-	#  transaction
-	#  tax
 	#  customer
       end
       unless obj.nil?
@@ -85,12 +89,12 @@ module BalanceBook
 	Cmd::Account.show(self, args)
       when 'invoice'
 	Cmd::Invoice.show(self, args)
+      when 'Transaction', 'trans', 'ledger'
+	Cmd::Ledger.show(self, args)
+      when 'Customer', 'cust'
+	Cmd::Customer.show(self, args)
       else
-	puts "*** show #{type} #{args}"
-	# TBD
-	#  transaction
-	#  tax
-	#  customer
+	raise StandardError.new("#{type} is not a valid type for a show command.")
       end
     end
 
@@ -98,9 +102,8 @@ module BalanceBook
       updated = nil
       case type
       when 'fx'
-	# TBD change to cmd?
-	@fx.update(self, args)
-	save_fx
+	Cmd::Fx.update(self, args)
+	save_fx if @save_ok
       when 'account'
 	updated = Cmd::Account.update(self, args)
       else
@@ -108,7 +111,6 @@ module BalanceBook
 	# TBD
 	#  invoice
 	#  transaction
-	#  tax
 	#  customer
       end
       if updated
@@ -124,14 +126,14 @@ module BalanceBook
       case type
       when 'category', 'cat'
 	updated = Cmd::Category.delete(self, args)
+      when 'tax'
+	updated = Cmd::Tax.delete(self, args)
       else
 	puts "*** del #{type} #{args}"
 	# TBD
 	#  invoice
 	#  account - only if not referenced by anything
 	#  transaction
-	#  category
-	#  tax
 	#  customer
       end
       if updated
@@ -150,15 +152,16 @@ module BalanceBook
 	Cmd::Invoice.list(self, args)
       when 'account', 'accounts'
 	Cmd::Account.list(self, args)
-      when 'transaction', 'transactions', 'ledger'
-	# TBD
-      when 'category', 'categories'
+      when 'transaction', 'transactions', 'trans'
+	Cmd::Transactions.list(self, args)
+      when 'ledger'
+	Cmd::Ledger.list(self, args)
+      when 'category', 'categories', 'cat'
 	Cmd::Category.list(self, args)
-	# TBD
       when 'tax', 'taxes'
-	# TBD
-      when 'customer', 'customers'
-	# TBD
+	Cmd::Tax.list(self, args)
+      when 'customer', 'customers', 'cust'
+	Cmd::Customer.list(self, args)
       else
 	raise StandardError.new("#{type} is not a valid type for a list command.")
       end

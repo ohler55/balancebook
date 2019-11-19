@@ -51,20 +51,18 @@ module BalanceBook
       end
 
       def self.list(book, args={})
-	first, last = extract_date_range(book, args)
-	name = args[:id]
-	acct = book.company.find_account(name)
-	raise StandardError.new("Failed to find account #{name}.") if acct.nil?
+	table = Table.new('Accounts', [
+			  Col.new('ID', -10, :id, nil),
+			  Col.new('Name', -20, :name, nil),
+			  Col.new('Balance', 10, :balance, '%.2f'),
+			  Col.new('Cur', -3, :currency, nil),
+			  Col.new('ABA', -10, :aba, nil),
+			  Col.new('Kind', -8, :kind, nil),
+			  Col.new('address', -50, :address, nil),
+			  ])
 
-	puts "\n#{acct.name} transactions" if $verbose
-	fmt = "%10s  %-40s  %10.2f"
-	puts "\nDate        Description                                   Amount"
-	acct.transactions.each { |t|
-	  d = Date.parse(t.date)
-	  next if d < first || last < d
-	  vals = [t.date, t.who.strip[0..39], t.amount]
-	  puts fmt % vals
-	}
+	table.rows = book.company.accounts
+	table.display
       end
 
     end

@@ -14,6 +14,7 @@ module BalanceBook
       attr_accessor :address
       attr_accessor :aba
       attr_accessor :kind
+      attr_accessor :currency
       attr_accessor :transactions
 
       def initialize(id)
@@ -58,6 +59,12 @@ module BalanceBook
 	  }
 	end
 	nil
+      end
+
+      def balance
+	total = 0.0
+	@transactions.each { |t| total += t.amount }
+	total
       end
 
     end

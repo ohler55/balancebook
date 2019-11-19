@@ -3,6 +3,19 @@
 todo
 -----------
 
+- remove name from tax, just use ID
+- for tables, add _
+ - maybe a helper like
+  table(title, header)
+   - header is {'ID' => -10, 'Percent' => 10 }
+  - maybe a class that knows how to format
+ - Column
+  - label
+  - width
+  - just
+  - format
+  - method
+
 - category
  - do all cmds
   - show for all
@@ -21,34 +34,6 @@ todo
 
 - account
 
-- categories
-Accounting Fees
-Bank Service Charges
-Bank Transfer
-Computer Hardware
-Hosting
-Software
-Internet
-Employer Taxes
-Liability Insurance
-Entertainment
-Office Supplies
-Professional Fees
-T2 Withholding
-HST
-GST
-Phone
-Transportation
-FX
-Owner
-Payroll State PIT
-Payroll State SDI
-Payroll State ETT
-Payroll State UI
-Payroll USA FICA
-Payroll USA SS
-Payroll USA Tax
-Payroll Salary
 
 also various taxes for FTB and IRS
 

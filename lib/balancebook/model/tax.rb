@@ -6,14 +6,14 @@ module BalanceBook
     class Tax
 
       attr_accessor :id
-      attr_accessor :name
       attr_accessor :percent
 
-      def initialize(id, name, percent)
-	@id = id
-	@name = name
-	@percent = percent
+      def initialize(name, percent)
+	@id = name
+	@percent = percent.to_f
       end
+
+      alias :name :id
 
       def validate(book)
 	raise StandardError.new("Tax ID can not be empty.") unless !@id.nil? && 0 < @id.size

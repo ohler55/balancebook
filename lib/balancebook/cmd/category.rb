@@ -11,11 +11,12 @@ module BalanceBook
       extend Base
 
       def self.list(book, args={})
-	puts "\nCategories:"
-	book.company.categories.each { |cat|
-	  puts "  #{cat.name}"
-	}
-	puts
+	table = Table.new('Categories', [
+			  Col.new('Name', -30, :name, nil),
+			  ])
+
+	table.rows = book.company.categories
+	table.display
       end
 
       def self.create(book, args={})
