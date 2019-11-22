@@ -9,7 +9,7 @@ module BalanceBook
       attr_accessor :date
       attr_accessor :amount
       attr_accessor :who
-      attr_accessor :ledgerTrans
+      attr_accessor :ledgerTrans # a list to support split ledger entries
 
       def initialize(id, date, amount, who)
 	@id = id

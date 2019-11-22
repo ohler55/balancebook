@@ -50,7 +50,11 @@ module BalanceBook
       end
 
       def sort_trans
-	@transactions.sort! { |a,b| b.date <=> a.date } unless @transactions.nil?
+	@transactions.sort! { |a,b|
+	  dif = b.date <=> a.date
+	  dif = a.id <=> b.id if 0 == dif
+	  dif
+	} unless @transactions.nil?
       end
 
       def find_trans(id)
