@@ -55,7 +55,7 @@ module BalanceBook
 	  next if 0 == tax.size
 	  t = book.company.find_tax(tax)
 	  raise StandardError.new("Transaction tax #{@tax} not found.") if t.nil?
-	  ta = Model::TaxAmount.new(t.id, model.amount - (model.amount / (1.0 + t.percent / 100.0)))
+	  ta = Model::TaxAmount.new(t.id, model.amount * t.percent / (100.0 + t.percent))
 	  model.taxes = [] if model.taxes.nil?
 	  model.taxes << ta
 	}

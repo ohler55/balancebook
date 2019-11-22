@@ -65,6 +65,8 @@ module BalanceBook
       when 'transaction', 'trans', 'ledger', 'tx'
 	obj = Cmd::Ledger.create(self, args)
 	@company.add_tx(self, obj) unless obj.nil?
+      when 'BankTransaction', 'bank'
+	obj = Cmd::Transactions.create(self, args)
       else
 	puts "*** new #{type} #{args}"
 	# TBD

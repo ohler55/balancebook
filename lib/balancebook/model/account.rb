@@ -43,13 +43,14 @@ module BalanceBook
 	  else
 	    @transactions << t
 	  end
+	  sort_trans
 	else
 	  # TBD verify no changes
 	end
       end
 
       def sort_trans
-	@transactions.sort_by { |t| t.date } unless @transactions.nil?
+	@transactions.sort! { |a,b| b.date <=> a.date } unless @transactions.nil?
       end
 
       def find_trans(id)

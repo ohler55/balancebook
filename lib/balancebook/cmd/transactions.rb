@@ -18,8 +18,9 @@ module BalanceBook
 
 	table = Table.new("#{acct.name} Transactions (#{acct.currency})", [
 			  Col.new('Date', -10, :date, nil),
-			  Col.new('Description', -40, :who, nil),
+			  Col.new('Description', -60, :who, nil),
 			  Col.new('Amount', 10, :amount, '%.2f'),
+			  Col.new('ID', -20, :id, nil),
 			  ])
 
 	acct.transactions.each { |t|
@@ -28,6 +29,21 @@ module BalanceBook
 	  table.add_row(t)
 	}
 	table.display
+      end
+
+      def self.create(book, args)
+	puts "\nEnter information for a new Bank Tranaction"
+	aid = args[:account] || read_str('Account')
+	acct = book.company.find_account(aid)
+	raise StandardError.new("Failed to find account #{name}.") if acct.nil?
+	id = args[:id] || read_str('ID')
+	date = args[:date] || read_str('Date')
+	amount = args[:amount] || read_amount('Amount')
+	who = args[:who] || read_str('Description')
+	model = Model::BankTrans.new(id, date, amount, who)
+	model.validate(book)
+	acct.add_trans(model)
+	model
       end
 
     end

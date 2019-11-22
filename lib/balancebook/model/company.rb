@@ -125,6 +125,14 @@ module BalanceBook
 	BalanceBook::Report::Reports.new(self)
       end
 
+      def find_account(id)
+	id = id.downcase
+	@account.each { |acct|
+	  return acct if id == acct.id.downcase
+	}
+	nil
+      end
+
       def find_tax(id)
 	id = id.downcase
 	@taxes.each { |tax|

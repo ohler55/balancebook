@@ -3,26 +3,22 @@
 todo
 -----------
 
-- remove name from tax, just use ID
-- for tables, add _
- - maybe a helper like
-  table(title, header)
-   - header is {'ID' => -10, 'Percent' => 10 }
-  - maybe a class that knows how to format
- - Column
-  - label
-  - width
-  - just
-  - format
-  - method
+- import command
+ - ledger from csv file
 
-- category
- - do all cmds
-  - show for all
-  - list
-  - create
-  - update
-  - delete
+- dup check for ledger
+- match check
+ - match account, amount, and date withing X days
+ - verbose shows matches
+
+- trans should include tip (not taxed)
+
+- do all cmds
+ - show for all
+ - list
+ - create
+ - update
+ - delete
 
 - update account
  - cmd

@@ -50,6 +50,8 @@ module BalanceBook
 	    s += ' ' * ((@width - s.size) / 2)
 	    s =  ' ' * (@width - s.size) + s
 	  end
+	elsif @width < s.size
+	  s = s[0...@width]
 	end
 	s
       end
