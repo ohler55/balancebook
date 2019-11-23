@@ -36,25 +36,25 @@ module BalanceBook
       end
 
       def self.create(book, args)
-	puts "\nEnter information for a new Transaction"
+	puts "\nEnter information for a new Ledger Entry"
 	id = book.company.gen_tx_id
-	model = Model::Transaction.new(id)
+	model = Model::Entry.new(id)
 	model.date = args[:date] || read_date('Date')
 	model.who = args[:who] || read_str('Who')
 	model.category = args[:cat] || read_str('Category')
 	cat = book.company.find_category(model.category)
-	raise StandardError.new("Transaction category #{model.category} not found.") if cat.nil?
+	raise StandardError.new("Entry category #{model.category} not found.") if cat.nil?
 	model.amount = args[:amount] || read_amount('Amount')
 	model.amount= model.amount.to_f
 	model.account = args[:account] || read_str('Account')
 	acct = book.company.find_account(model.account)
-	raise StandardError.new("Transaction account #{@account} not found.") if acct.nil?
+	raise StandardError.new("Entry account #{@account} not found.") if acct.nil?
 	model.currency = acct.currency
 	(args[:tax] || read_str('Taxes')).split(',').each { |tax|
 	  tax.strip!
 	  next if 0 == tax.size
 	  t = book.company.find_tax(tax)
-	  raise StandardError.new("Transaction tax #{@tax} not found.") if t.nil?
+	  raise StandardError.new("Entry tax #{@tax} not found.") if t.nil?
 	  ta = Model::TaxAmount.new(t.id, model.amount * t.percent / (100.0 + t.percent))
 	  model.taxes = [] if model.taxes.nil?
 	  model.taxes << ta
@@ -69,8 +69,8 @@ module BalanceBook
       def self.show(book, args={})
 	id = args[:id]
 	trans = book.company.find_trans(id.to_i)
-	raise StandardError.new("Failed to find ledger transaction #{id}.") if trans.nil?
-	puts "\nTransaction #{trans.id}"
+	raise StandardError.new("Failed to find ledger entry #{id}.") if trans.nil?
+	puts "\nLedger Entry #{trans.id}"
 	puts "Date: #{trans.date}"
 	puts "Description: #{trans.who}"
 	puts "Category: #{trans.category}"

@@ -43,10 +43,10 @@ module BalanceBook
 	end
 	unless @ledger.nil?
 	  dups = {}
-	  @ledger.each { |t|
-	    t.validate(book)
-	    raise StandardError.new("Duplicate ledger transaction #{t.id}.") unless dups[t.id].nil?
-	    dups[t.id] = t
+	  @ledger.each { |e|
+	    e.validate(book)
+	    raise StandardError.new("Duplicate ledger entry #{e.id}.") unless dups[e.id].nil?
+	    dups[e.id] = e
 	  }
 	end
 	unless @taxes.nil?
@@ -86,9 +86,9 @@ module BalanceBook
 	@taxes.sort_by! { |tax| tax.id }
       end
 
-      def add_tx(book, t)
-	@ledger << t
-	@ledger.sort_by! { |t| t.date }
+      def add_entry(book, e)
+	@ledger << e
+	@ledger.sort_by! { |e| e.date }
       end
 
       def cat_used?(id)

@@ -7,12 +7,12 @@ end
 
 require 'balancebook/model/base'
 require 'balancebook/model/account'
-require 'balancebook/model/bank_trans'
 require 'balancebook/model/category'
 require 'balancebook/model/company'
 require 'balancebook/model/contact'
 require 'balancebook/model/currency'
 require 'balancebook/model/customer'
+require 'balancebook/model/entry'
 require 'balancebook/model/fx'
 require 'balancebook/model/invoice'
 require 'balancebook/model/payment'

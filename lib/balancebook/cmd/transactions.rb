@@ -40,7 +40,7 @@ module BalanceBook
 	date = args[:date] || read_str('Date')
 	amount = args[:amount] || read_amount('Amount')
 	who = args[:who] || read_str('Description')
-	model = Model::BankTrans.new(id, date, amount, who)
+	model = Model::Transaction.new(id, date, amount, who)
 	model.validate(book)
 	acct.add_trans(model)
 	model

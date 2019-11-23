@@ -30,7 +30,7 @@ module BalanceBook
 	  amount = bt['TRNAMT'].to_f
 	  t = bt['DTPOSTED']
 	  date = "#{t[0..3]}-#{t[4..5]}-#{t[6..7]}"
-	  trans = Model::BankTrans.new(bt['FITID'], date, amount, bt['NAME'].strip)
+	  trans = Model::Transaction.new(bt['FITID'], date, amount, bt['NAME'].strip)
 	  acct.add_trans(trans)
 	}
 	acct.sort_trans

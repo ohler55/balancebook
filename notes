@@ -3,9 +3,6 @@
 todo
 -----------
 
-- should transaction become LedgerEntry?
- - then change bank_trans to transaction
-
 - import command
  - ledger from csv file
 

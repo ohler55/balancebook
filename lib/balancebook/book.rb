@@ -62,10 +62,10 @@ module BalanceBook
       when 'tax'
 	obj = Cmd::Tax.create(self, args)
 	@company.add_tax(self, obj) unless obj.nil?
-      when 'transaction', 'trans', 'ledger', 'tx'
+      when 'entry', 'ledger'
 	obj = Cmd::Ledger.create(self, args)
-	@company.add_tx(self, obj) unless obj.nil?
-      when 'BankTransaction', 'bank'
+	@company.add_entry(self, obj) unless obj.nil?
+      when 'transaction', 'trans', 'bank'
 	obj = Cmd::Transactions.create(self, args)
       else
 	puts "*** new #{type} #{args}"
@@ -91,7 +91,7 @@ module BalanceBook
 	Cmd::Account.show(self, args)
       when 'invoice'
 	Cmd::Invoice.show(self, args)
-      when 'Transaction', 'trans', 'ledger'
+      when 'entry', 'ledger'
 	Cmd::Ledger.show(self, args)
       when 'Customer', 'cust'
 	Cmd::Customer.show(self, args)
@@ -112,7 +112,7 @@ module BalanceBook
 	puts "*** update #{type} #{args}"
 	# TBD
 	#  invoice
-	#  transaction
+	#  entry
 	#  customer
       end
       if updated
@@ -135,7 +135,7 @@ module BalanceBook
 	# TBD
 	#  invoice
 	#  account - only if not referenced by anything
-	#  transaction
+	#  enrtry
 	#  customer
       end
       if updated
@@ -154,7 +154,7 @@ module BalanceBook
 	Cmd::Invoice.list(self, args)
       when 'account', 'accounts'
 	Cmd::Account.list(self, args)
-      when 'transaction', 'transactions', 'trans'
+      when 'transaction', 'transactions', 'trans', 'bank'
 	Cmd::Transactions.list(self, args)
       when 'ledger'
 	Cmd::Ledger.list(self, args)
