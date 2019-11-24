@@ -38,7 +38,7 @@ module BalanceBook
 	raise StandardError.new("Failed to find account #{name}.") if acct.nil?
 	id = args[:id] || read_str('ID')
 	date = args[:date] || read_str('Date')
-	amount = args[:amount] || read_amount('Amount')
+	amount = (args[:amount] || read_amount('Amount')).to_f
 	who = args[:who] || read_str('Description')
 	model = Model::Transaction.new(id, date, amount, who)
 	model.validate(book)

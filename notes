@@ -3,6 +3,27 @@
 todo
 -----------
 
+- ledger entries
+ - load ledger entries one year at a time
+ - spreadsheet
+  - make sure all categories map
+  - import (backup first!)
+  - balance report
+   - ledger, each account
+  - link report
+  - link
+   - for each transaction look for matching in one of accounts (with correct currency)
+   - ask to link for each (later -y for auto yes)
+  - receipt report
+  - associate receipt
+
+- cach account (owner) resolve to get target
+ - $16,494.72 ?
+ - $15,554.88 USD 21,575 CAD outstanding invoice
+ - $3988.43 USD 2925.00 CAD withheld
+ - total -3048.59
+ - conversion may be slightly different
+
 - import command
  - ledger from csv file
 

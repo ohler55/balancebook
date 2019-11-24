@@ -8,6 +8,7 @@ module BalanceBook
       attr_accessor :account
       attr_accessor :date
       attr_accessor :amount
+      attr_accessor :note
 
       def validate(book)
 	raise StandardError.new("Invoice amount of #{@amount} must be greater than 0.0.") unless 0.0 < @amount

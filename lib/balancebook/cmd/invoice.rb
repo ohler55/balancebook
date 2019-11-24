@@ -72,6 +72,7 @@ module BalanceBook
 	model.to = args[:to] || read_str('To')
 	model.amount = args[:amount] || read_amount('Amount')
 	model.amount= model.amount.to_f
+	model.currency = args[:cur] || read_str('Currency')
 	tax = args[:tax] || read_str('Tax')
 	if 0 < tax.size
 	  ta = make_taxes(book, tax, model.amount)

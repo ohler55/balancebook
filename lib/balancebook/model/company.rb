@@ -71,7 +71,7 @@ module BalanceBook
 	raise StandardError.new("Duplicate invoice #{inv.id}.") unless find_invoice(inv.id).nil?
 	inv.validate(book)
 	@invoices << inv
-	@invoices.sort_by! { |inv| inv.submitted }
+	@invoices.sort! { |a,b| b.submitted <=> a.submitted }
       end
 
       def add_category(book, cat)
