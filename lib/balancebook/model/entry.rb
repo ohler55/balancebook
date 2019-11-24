@@ -10,9 +10,9 @@ module BalanceBook
       attr_accessor :amount
       attr_accessor :who
       attr_accessor :account
-      attr_accessor :currency
       attr_accessor :category
       attr_accessor :taxes # TaxAmount array
+      attr_accessor :tip # no tax unless part of bill
       attr_accessor :acctTrans
       attr_accessor :file
       attr_accessor :note
@@ -29,9 +29,8 @@ module BalanceBook
       end
 
       def validate(book)
-	raise StandardError.new("Entry ID can not be empty.") unless !@id.nil? && 0 < @id.size
+	raise StandardError.new("Entry ID can not be empty.") unless !@id.nil? && 0 < @id
 	validate_date('Entry date', @date)
-	raise StandardError.new("Entry amount of #{@amount} must be greater than 0.0.") unless 0.0 < @amount
 	acct = book.company.find_account(@account)
 	raise StandardError.new("Entry account #{@account} not found.") if acct.nil?
 	cat = book.company.find_category(@category)

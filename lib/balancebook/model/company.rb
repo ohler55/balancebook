@@ -87,6 +87,13 @@ module BalanceBook
       end
 
       def add_entry(book, e)
+	# TBD validate and check for duplicates
+	begin
+	  e.validate(book)
+	rescue Exception => x
+	  raise x.exception("#{Oj.dump(e, mode: :custom, indent: 0)}\n#{x.message}")
+	end
+
 	@ledger << e
 	@ledger.sort_by! { |e| e.date }
       end
@@ -173,9 +180,9 @@ module BalanceBook
 	nil
       end
 
-      def find_trans(id)
-	@ledger.each { |t|
-	  return t if id == t.id
+      def find_entry(id)
+	@ledger.each { |e|
+	  return e if id == e.id
 	}
 	nil
       end

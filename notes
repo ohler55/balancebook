@@ -7,7 +7,7 @@ todo
  - load ledger entries one year at a time
  - spreadsheet
   - make sure all categories map
-  - import (backup first!)
+  + import (backup first!)
   - balance report
    - ledger, each account
   - link report

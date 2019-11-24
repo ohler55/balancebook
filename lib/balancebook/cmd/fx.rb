@@ -12,8 +12,10 @@ module BalanceBook
 	first, last = extract_date_range(book, args)
 
 	puts "\nForeign Exchange Rate (base: #{book.fx.base})" if $verbose
-	fmt = "%10s" + " %10.6f" * book.fx.currencies.size
-	puts 'Date              ' + book.fx.currencies.map { |c| c.id }.join('        ')
+	fmt = "%10s" + "  %10.6f" * book.fx.currencies.size
+	puts "#{Table::UNDERLINE}Date      #{Table::NORMAL}  #{Table::UNDERLINE}       " +
+	     book.fx.currencies.map { |c| c.id }.join("#{Table::NORMAL}  #{Table::UNDERLINE}       ") +
+	     "#{Table::NORMAL}"
 
 	first.step(last, 1) { |d|
 	  ds = d.to_s

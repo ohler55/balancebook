@@ -43,6 +43,8 @@ module BalanceBook
 	cmd_del(type, args)
       when 'list'
 	cmd_list(type, args)
+      when 'import'
+	cmd_import(type, args)
       when 'report'
 	cmd_report(type, args)
       else
@@ -141,8 +143,10 @@ module BalanceBook
       if updated
 	if @save_ok
 	  save_company()
+	  puts "\n#{@company.name} saved.\n\n"
+	else
+	  puts "\n#{@company.name} NOT saved.\n\n"
 	end
-	puts "\n#{@company.name} saved.\n\n"
       end
     end
 
@@ -166,6 +170,23 @@ module BalanceBook
 	Cmd::Customer.list(self, args)
       else
 	raise StandardError.new("#{type} is not a valid type for a list command.")
+      end
+    end
+
+    def cmd_import(type, args)
+      case type
+      when 'entry', 'ledger'
+	changed = Cmd::Ledger.import(self, args)
+      else
+	raise StandardError.new("#{type} is not a valid type for a show command.")
+      end
+      if changed
+	if @save_ok
+	  save_company()
+	  puts "\n#{@company.name} saved.\n\n"
+	else
+	  puts "\n#{@company.name} NOT saved.\n\n"
+	end
       end
     end
 
