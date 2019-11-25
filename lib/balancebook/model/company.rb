@@ -87,15 +87,18 @@ module BalanceBook
       end
 
       def add_entry(book, e)
-	# TBD validate and check for duplicates
+	# TBD check for duplicates
 	begin
 	  e.validate(book)
 	rescue Exception => x
 	  raise x.exception("#{Oj.dump(e, mode: :custom, indent: 0)}\n#{x.message}")
 	end
-
 	@ledger << e
-	@ledger.sort_by! { |e| e.date }
+	@ledger.sort! { |a,b|
+	  dif = (b.date <=> a.date)
+	  dif = (b.id <=> a.id) if 0 == dif
+	  dif
+	}
       end
 
       def cat_used?(id)

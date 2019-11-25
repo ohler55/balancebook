@@ -23,8 +23,6 @@ module BalanceBook
 			  Col.new('Category', -20, :category, nil),
 			  Col.new('Account', -10, :account, nil),
 			  Col.new('Amount', 10, :amount, '%.2f'),
-			  Col.new('Tax', 10, :tax, '%.2f'),
-			  Col.new('Tip', 10, :tip, '%.2f'),
 			  Col.new('Link', -10, :acctTrans, nil),
 			  ])
 

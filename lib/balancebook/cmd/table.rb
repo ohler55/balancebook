@@ -34,7 +34,9 @@ module BalanceBook
 	  s = @label
 	else
 	  v = obj.send(method)
-	  if @format.nil?
+	  if v.nil?
+	    s = ''
+	  elsif @format.nil?
 	    s = v.to_s
 	  else
 	    s = @format % [v]
