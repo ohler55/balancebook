@@ -73,10 +73,13 @@ module BalanceBook
 	model.amount = args[:amount] || read_amount('Amount')
 	model.amount= model.amount.to_f
 	model.currency = args[:cur] || read_str('Currency')
+	cur = book.fx.find_currency(model.currency)
+	raise StandardError.new("Failed to find currency #{model.currency}.") if cur.nil?
+	model.currency = cur.id
 	tax = args[:tax] || read_str('Tax')
 	if 0 < tax.size
 	  ta = make_taxes(book, tax, model.amount)
-	  puts taxes.map { |ta| "  %s: %0.2f" % [ta.tax, ta.amount] }.join('  ') if $verbose
+	  puts ta.map { |ta| "  %s: %0.2f" % [ta.tax, ta.amount] }.join('  ') if $verbose
 	  model.taxes = ta
 	end
 	model.validate(book)
@@ -93,7 +96,7 @@ module BalanceBook
 	  raise StandardError.new("Could not find #{id} tax.") if tax.nil?
 
 	  # TBD broken for multiple taxes
-	  ta = Model::TaxAmount.new(id, (amount * tax.percent / (tax.percent + 100.0) * 100.0).to_i / 100.0)
+	  ta = Model::TaxAmount.new(tax.id, (amount * tax.percent / (tax.percent + 100.0) * 100.0).to_i / 100.0)
 	  taxes << ta
 	}
 	taxes

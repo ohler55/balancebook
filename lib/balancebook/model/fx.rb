@@ -25,6 +25,24 @@ module BalanceBook
 	nil
       end
 
+      def find_rate(id, date)
+	id.upcase!
+	return 1.0 if id == @base
+	cur = find_currency(id)
+	raise StandardError.new("Currency %s not found.") if cur.nil?
+	rate = cur.rate(date)
+	raise StandardError.new("Currency %s not found.") if rate <= 0.0
+	rate
+      end
+
+      def convert(src_cur, amount, dest_cur, date)
+	# find rate for src and dest
+	#
+	src_rate = find_rate(src_cur, date)
+	dest_rate = find_rate(dest_cur, date)
+	amount * dest_rate / src_rate
+      end
+
     end
   end
 end

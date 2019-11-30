@@ -9,7 +9,7 @@ module BalanceBook
       attr_accessor :date
       attr_accessor :amount
       attr_accessor :who
-      attr_accessor :ledgerTrans # a list to support split ledger entries
+      attr_accessor :ledger_tx # a list to support split ledger entries
 
       def initialize(id, date, amount, who)
 	@id = id
@@ -21,8 +21,8 @@ module BalanceBook
       def validate(book)
 	raise StandardError.new("Bank transaction ID can not be empty.") unless !@id.nil? && 0 < @id.size
 	validate_date('Transaction date', @date)
-	unless @ledgerTrans.nil?
-	  raise StandardError.new("Ledger transaction #{@ledgerTrans} not found.") if book.company.find_trans(@ledgerTrans).nil?
+	unless @ledger_tx.nil?
+	  raise StandardError.new("Ledger transaction #{@ledger_tx} not found.") if book.company.find_entry(@ledger_tx).nil?
 	end
       end
 

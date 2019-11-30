@@ -168,6 +168,8 @@ module BalanceBook
 	Cmd::Tax.list(self, args)
       when 'customer', 'customers', 'cust'
 	Cmd::Customer.list(self, args)
+      when 'transfer', 'xfer'
+	Cmd::Transfer.list(self, args)
       else
 	raise StandardError.new("#{type} is not a valid type for a list command.")
       end
@@ -191,6 +193,11 @@ module BalanceBook
     end
 
     def cmd_report(type, args)
+      case type
+      when 'balance'
+	Cmd::Report.balance(self, args)
+      end
+=begin
       rep = @reports.send(type, args)
       csv = args[:csv]
       if csv.nil?
@@ -200,6 +207,7 @@ module BalanceBook
 	  rep.csv(f)
 	}
       end
+=end
     end
 
     def save_fx

@@ -13,6 +13,7 @@ module BalanceBook
       attr_accessor :contacts
       attr_accessor :start
       attr_accessor :categories
+      attr_accessor :transfers
 
       def validate(book)
 	validate_date('Company start date', @start)
@@ -65,6 +66,12 @@ module BalanceBook
 	    dups[c.id] = c
 	  }
 	end
+	unless @transfers.nil?
+	  # TBD check for duplicates
+	  @transfers.each { |t|
+	    t.validate(book)
+	  }
+	end
       end
 
       def add_invoice(book, inv)
@@ -99,6 +106,13 @@ module BalanceBook
 	  dif = (b.id <=> a.id) if 0 == dif
 	  dif
 	}
+      end
+
+      def add_transfer(book, t)
+	t.validate(book)
+	@transfers = [] if @transfers.nil?
+	@transfers << t
+	@transfers.sort! { |a,b| b.date <=> a.date }
       end
 
       def cat_used?(id)

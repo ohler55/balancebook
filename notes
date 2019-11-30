@@ -3,6 +3,23 @@
 todo
 -----------
 
+- fx
+ - calc value give date, src_cur, dest_cur, src_amount
+
+
+2017-12-18 621.70 transfer from bw to usd
+2017-12-22
+2017-12-29
+
+- transfers
+ - bw to usd
+ - bw to cad (with fx loss)
+ - look for all transfers in 2017
+
+- put formatting in currency
+ - include symbol like $
+ - so maybe a val_s or something
+
 - ledger entries
  - load ledger entries one year at a time
  - spreadsheet

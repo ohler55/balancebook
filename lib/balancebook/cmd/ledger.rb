@@ -9,30 +9,47 @@ require 'ox'
 module BalanceBook
   module Cmd
 
+    class CurCol < Col
+      def initialize(label, width, format, book, cur)
+	super(label, width, nil, format)
+	@cur = cur
+	@book = book
+      end
+
+      def value(obj)
+	obj.amount_in_currency(@book, @cur)
+      end
+    end
+
     class Ledger
       extend Base
 
       def self.list(book, args={})
 	first, last = extract_date_range(book, args)
 	# TBD filter params like status, category, etc
+	cur = book.fx.base
 
 	table = Table.new('Ledger', [
 			  Col.new('ID', 6, :id, "%d"),
 			  Col.new('Date', -10, :date, nil),
 			  Col.new('Description', -40, :who, nil),
-			  Col.new('Category', -20, :category, nil),
+			  Col.new('Category', -26, :category, nil),
 			  Col.new('Account', -10, :account, nil),
 			  Col.new('Amount', 10, :amount, '%.2f'),
-			  Col.new('Link', -10, :acctTrans, nil),
+			  CurCol.new("Amount #{cur}", 10, '%.2f', book, cur),
+			  Col.new('Link', -10, :acct_tx, nil),
 			  ])
-
+	total = 0.0
 	book.company.ledger.each { |t|
 	  d = Date.parse(t.date)
 	  next if d < first || last < d
 	  # TBD filters
 	  table.add_row(t)
+	  total += t.amount_in_currency(book, cur)
 	}
 	table.display
+	puts "                    Total                                                                                         %10.2f" % [total]
+	puts
       end
 
       def self.create(book, args)
@@ -84,7 +101,7 @@ module BalanceBook
 	  puts "Tax: #{taxes}"
 	end
 	puts "File: #{entry.file}" unless entry.file.nil? || 0 == entry.file.size
-	puts "Link: #{entry.acctTrans}" unless entry.acctTrans.nil?
+	puts "Link: #{entry.acct_tx}" unless entry.acct_tx.nil?
 	puts "Note: #{entry.note}" unless entry.note.nil? || 0 == entry.note.size
 	puts
       end

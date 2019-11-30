@@ -13,7 +13,7 @@ module BalanceBook
       attr_accessor :category
       attr_accessor :taxes # TaxAmount array
       attr_accessor :tip # no tax unless part of bill
-      attr_accessor :acctTrans
+      attr_accessor :acct_tx
       attr_accessor :file
       attr_accessor :note
 
@@ -28,6 +28,15 @@ module BalanceBook
 	sum
       end
 
+      def amount_in_currency(book, base_cur)
+	acct = book.company.find_account(@account)
+	raise StandardError.new("Account #{@account} not found.") if acct.nil?
+	return @amount if acct.currency == base_cur
+	base_rate = book.fx.find_rate(base_cur, @date)
+	acct_rate = book.fx.find_rate(acct.currency, @date)
+	@amount * base_rate / acct_rate
+      end
+
       def validate(book)
 	raise StandardError.new("Entry ID can not be empty.") unless !@id.nil? && 0 < @id
 	validate_date('Entry date', @date)
@@ -35,8 +44,8 @@ module BalanceBook
 	raise StandardError.new("Entry account #{@account} not found.") if acct.nil?
 	cat = book.company.find_category(@category)
 	raise StandardError.new("Entry category #{@category} not found.") if cat.nil?
-	unless @acctTrans.nil?
-	  raise StandardError.new("Account transaction #{@account}-#{@acctTrans} not found.") if acct.find_trans(@acctTrans).nil?
+	unless @acct_tx.nil?
+	  raise StandardError.new("Account transaction #{@account}-#{@acct_tx} not found.") if acct.find_trans(@acct_tx).nil?
 	end
       end
 

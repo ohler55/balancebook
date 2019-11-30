@@ -29,11 +29,15 @@ module BalanceBook
 	@format = format
       end
 
+      def value(obj)
+	v = obj.send(method)
+      end
+
       def to_s(obj)
 	if obj.nil?
 	  s = @label
 	else
-	  v = obj.send(method)
+	  v = value(obj)
 	  if v.nil?
 	    s = ''
 	  elsif @format.nil?
@@ -41,6 +45,7 @@ module BalanceBook
 	  else
 	    s = @format % [v]
 	  end
+	  s
 	end
 	if s.size < @width
 	  case @just
