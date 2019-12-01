@@ -62,6 +62,17 @@ module BalanceBook
 	sum
       end
 
+      def paid_amount_by(date)
+	return 0.0 if @payments.nil?
+	sum = 0.0
+	@payments.each { |p|
+	  next if p.amount.nil?
+	  pd = Date.parse(p.date)
+	  sum += p.amount if pd <= date
+	}
+	sum
+      end
+
       def days_to_paid
 	return nil if @payments.nil?
 	t0 = submit_date.to_time.to_i

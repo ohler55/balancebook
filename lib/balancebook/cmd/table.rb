@@ -33,7 +33,7 @@ module BalanceBook
 	v = obj.send(method)
       end
 
-      def to_s(obj)
+      def to_s(obj, pad=true)
 	if obj.nil?
 	  s = @label
 	else
@@ -47,6 +47,7 @@ module BalanceBook
 	  end
 	  s
 	end
+	return s unless pad
 	if s.size < @width
 	  case @just
 	  when LEFT
@@ -102,7 +103,26 @@ module BalanceBook
       end
 
       def csv
-	# TBD
+	sv(',')
+      end
+
+      def tsv
+	sv("\t")
+      end
+
+      def sv(sep)
+	@cols.each_with_index { |col,i|
+	  print(sep) unless 0 == i
+	  print(col.to_s(nil, false))
+	}
+	puts
+	@rows.each { |row|
+	  @cols.each_with_index { |col,i|
+	    print(sep) unless 0 == i
+	    print(col.to_s(row, false))
+	  }
+	  puts
+	}
       end
 
     end

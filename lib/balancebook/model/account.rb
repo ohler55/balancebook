@@ -76,7 +76,6 @@ module BalanceBook
 	return amount if @currency == base_cur
 	base_rate = book.fx.find_rate(base_cur, date)
 	acct_rate = book.fx.find_rate(@currency, date)
-	puts "*** #{@currency} #{amount} -> #{amount * base_rate / acct_rate}"
 	amount * base_rate / acct_rate
       end
 

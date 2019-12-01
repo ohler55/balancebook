@@ -28,6 +28,8 @@ module BalanceBook
 	first, last = extract_date_range(book, args)
 	# TBD filter params like status, category, etc
 	cur = book.fx.base
+	tsv = args.has_key?(:tsv)
+	csv = args.has_key?(:csv)
 
 	table = Table.new('Ledger', [
 			  Col.new('ID', 6, :id, "%d"),
@@ -47,9 +49,15 @@ module BalanceBook
 	  table.add_row(t)
 	  total += t.amount_in_currency(book, cur)
 	}
-	table.display
-	puts "                    Total                                                                                         %10.2f" % [total]
-	puts
+	if tsv
+	  table.tsv
+	elsif csv
+	  table.csv
+	else
+	  table.display
+	  puts "                    Total                                                                                         %10.2f" % [total]
+	  puts
+	end
       end
 
       def self.create(book, args)

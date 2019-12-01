@@ -3,13 +3,21 @@
 todo
 -----------
 
+- balance report
+ - include transfers
+  - at end loop through transfers and increase and decrease as needed
+   - both base_balance and balance
+
+- ledgers is just that, no need to adjust for account transfers
+- use transfers from bank to cash to cover owner use of cash
+
+
 - fx
  - calc value give date, src_cur, dest_cur, src_amount
 
-
-2017-12-18 621.70 transfer from bw to usd
-2017-12-22
-2017-12-29
+- store amounts as integers
+ - currency should identify shift
+ - currency should specify format (maybe a function to return amount as string)
 
 - transfers
  - bw to usd

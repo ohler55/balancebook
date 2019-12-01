@@ -10,18 +10,19 @@ module BalanceBook
   module Cmd
 
     class Balance
+      attr_accessor :account
       attr_accessor :label
       attr_accessor :balance
       attr_accessor :base_balance
       attr_accessor :currency
 
-      def initialize(label, currency)
+      def initialize(acct, label, currency)
+	@account = acct
 	@label = label
 	@balance = 0.0
 	@base_balance = 0.0
 	@currency = currency
       end
-
 
     end
   end
