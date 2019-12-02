@@ -8,9 +8,16 @@ module BalanceBook
       attr_accessor :id
       attr_accessor :rates
       attr_accessor :symbol
+      attr_accessor :shift
+      attr_accessor :_fx
 
       def initialize(id)
 	@id = id
+      end
+
+      def prepare(book, fx)
+	@_fx = fx
+	# TBD create format
       end
 
       def validate(book)
@@ -25,7 +32,7 @@ module BalanceBook
 
       def rate(date)
 	date = date.to_s
-	# TBD divide and conquer using ratio of diff from first and last
+	# TBD divide and conquer using ratio of diff from first and last (ratio search)
 	@rates.each { |r|
 	  return r.rate if date == r.date
 	}

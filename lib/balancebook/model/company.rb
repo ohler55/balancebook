@@ -14,6 +14,16 @@ module BalanceBook
       attr_accessor :start
       attr_accessor :categories
       attr_accessor :transfers
+      attr_accessor :_book
+
+      def prepare(book)
+	@_book = book
+	@accounts.each { |a| a.prepare(book, self) }
+	@customers.each { |c| c.prepare(book, self) }
+	@invoices.each { |inv| inv.prepare(book, self) }
+	@ledger.each { |e| e.prepare(book, self) }
+	@transfers.each { |t| t.prepare(book, self) }
+      end
 
       def validate(book)
 	validate_date('Company start date', @start)

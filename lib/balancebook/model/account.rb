@@ -16,9 +16,17 @@ module BalanceBook
       attr_accessor :kind
       attr_accessor :currency
       attr_accessor :transactions
+      attr_accessor :_company
+      attr_accessor :_currency
 
       def initialize(id)
 	@id = id
+      end
+
+      def prepare(book, company)
+	@_company = company
+	@_currency = book.fx.find_currency(@currency)
+	@transactions.each { |t| t.prepare(book, self) }
       end
 
       def validate(book)

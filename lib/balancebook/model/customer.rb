@@ -11,6 +11,9 @@ module BalanceBook
       attr_accessor :address
       attr_accessor :notes
 
+      def prepare(book, company)
+      end
+
       def validate(book)
 	raise StandardError.new("Customer ID can not be empty.") unless !@id.nil? && 0 < @id.size
 	raise StandardError.new("Customer currency #{@currency} not found.") if book.fx.find_currency(@currency).nil?

@@ -45,14 +45,14 @@ module BalanceBook
 			  Col.new('Paid On', -10, :paid, nil),
 			  ])
 
-	first, last = extract_date_range(book, args)
+	period = extract_period(book, args)
 	paid = args[:paid]
 	paid = paid.downcase == "true" unless paid.nil?
 	cust = args[:cust] || args[:customer]
 
 	book.company.invoices.each { |inv|
 	  date = Date.parse(inv.submitted)
-	  next if date < first || last < date
+	  next unless period.in_range(date)
 	  unless paid.nil?
 	    ip = inv.paid
 	    next if paid && ip.nil?

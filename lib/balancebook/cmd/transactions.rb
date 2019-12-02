@@ -11,7 +11,7 @@ module BalanceBook
       extend Base
 
       def self.list(book, args={})
-	first, last = extract_date_range(book, args)
+	period = extract_period(book, args)
 	name = args[:id]
 	acct = book.company.find_account(name)
 	raise StandardError.new("Failed to find account #{name}.") if acct.nil?
@@ -25,7 +25,7 @@ module BalanceBook
 
 	acct.transactions.each { |t|
 	  d = Date.parse(t.date)
-	  next if d < first || last < d
+	  next unless period.in_range(d)
 	  table.add_row(t)
 	}
 	table.display

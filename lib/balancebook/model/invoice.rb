@@ -14,6 +14,10 @@ module BalanceBook
       attr_accessor :currency
       attr_accessor :po
 
+      def prepare(book, company)
+	# TBD currency, submitted, payments(date & account)
+      end
+
       def validate(book)
 	raise StandardError.new("Invoice ID can not be empty.") unless !@id.nil? && 0 < @id.size
 	raise StandardError.new("Invoice amount of #{@amount} must be greater than 0.0.") unless 0.0 < @amount
@@ -33,6 +37,18 @@ module BalanceBook
 
       def submit_date
 	Date.parse(@submitted)
+      rescue Exception => e
+	nil
+      end
+
+      # Most recent payment.
+      def paid_date
+	recent = nil
+	@payments.each { |p|
+	  next if p.amount.nil?
+	  pd = Date.parse(p.date)
+	  recent = pd if recent.nil? || recent < pd
+	}
       rescue Exception => e
 	nil
       end

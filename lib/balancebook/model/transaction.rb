@@ -10,12 +10,17 @@ module BalanceBook
       attr_accessor :amount
       attr_accessor :who
       attr_accessor :ledger_tx # a list to support split ledger entries
+      attr_accessor :_account
 
       def initialize(id, date, amount, who)
 	@id = id
 	@date = date
 	@amount = amount
 	@who = who
+      end
+
+      def prepare(book, acct)
+	@_account = acct
       end
 
       def validate(book)

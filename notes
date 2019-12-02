@@ -1,23 +1,31 @@
 ;; -*- mode: outline; outline-regexp: " *[-\+]"; indent-tabs-mode: nil; fill-column: 120 -*-
 
+remember
+------------
+ - ledgers is just that, no need to adjust for account transfers
+ - use transfers from bank to cash to cover owner use of cash
+
 todo
 -----------
 
-- balance report
- - include transfers
-  - at end loop through transfers and increase and decrease as needed
-   - both base_balance and balance
+- currency as int? or maybe just round correctly on conversions
+ - currency.fmt(val)
+  - format with symbol and shifted
+ - fx.convert(val, src_cur, dest_cur, date)
+  - round
 
-- ledgers is just that, no need to adjust for account transfers
-- use transfers from bank to cash to cover owner use of cash
+
+- balance report
 
 
 - fx
  - calc value give date, src_cur, dest_cur, src_amount
 
 - store amounts as integers
+ - first step is to add _currency to account or _cur
  - currency should identify shift
  - currency should specify format (maybe a function to return amount as string)
+ - when converting round instead of floor
 
 - transfers
  - bw to usd

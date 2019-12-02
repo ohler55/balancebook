@@ -11,7 +11,7 @@ module BalanceBook
       extend Base
 
       def self.update(book, args={})
-	first, last = extract_date_range(book, args)
+	period = extract_period(book, args)
 	file = args[:file]
 	name = args[:id]
 	acct = book.company.find_account(name)

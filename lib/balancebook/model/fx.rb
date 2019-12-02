@@ -9,7 +9,15 @@ module BalanceBook
     class Fx
 
       attr_accessor :base
+      attr_accessor :symbol
+      attr_accessor :shift
       attr_accessor :currencies
+      attr_accessor :_book
+
+      def prepare(book)
+	@_book = book
+	@currencies.each { |c| c.prepare(book, self) }
+      end
 
       def validate(book)
 	raise StandardError.new("Fx base can not be empty.") unless !@base.nil? && 0 < @base.size

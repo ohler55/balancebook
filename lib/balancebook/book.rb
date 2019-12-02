@@ -24,6 +24,9 @@ module BalanceBook
       @backups = backups
       @save_ok = save_ok
       @reports = Report::Reports.new(self)
+
+      @fx.prepare(self)
+      @company.prepare(self)
     end
 
     def validate
@@ -195,7 +198,7 @@ module BalanceBook
     def cmd_report(type, args)
       case type
       when 'balance'
-	Cmd::Report.balance(self, args)
+	Cmd::Balance.report(self, args)
       end
 =begin
       rep = @reports.send(type, args)
@@ -212,12 +215,12 @@ module BalanceBook
 
     def save_fx
       rotate_files(@fx_file)
-      Oj.to_file(@fx_file, @fx, indent: 2)
+      Oj.to_file(@fx_file, @fx, mode: :object, indent: 2, ignore_under: true)
     end
 
     def save_company
       rotate_files(@data_file)
-      Oj.to_file(@data_file, @company, indent: 2)
+      Oj.to_file(@data_file, @company, mode: :object, indent: 2, ignore_under: true)
     end
 
     def rotate_files(f)

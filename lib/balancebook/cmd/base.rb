@@ -7,10 +7,13 @@ module BalanceBook
 
     module Base
 
-      def extract_date_range(book, args)
+      def extract_period(book, args)
 	p = args[:period]
 	if p.nil?
-	  [extract_first(book, args), extract_last(book, args)]
+	  period = Period.new
+	  period.first = extract_first(book, args)
+	  period.last = extract_last(book, args)
+	  period
 	else
 	  parse_period(p)
 	end
@@ -35,32 +38,33 @@ module BalanceBook
       end
 
       def parse_period(p)
+	period = Period.new
 	year = p[0..3].to_i
 	if 4 < p.size
 	  raise StandardError.new("Invalid period '#{p}'.") if 'q' != p[4].downcase
 	  case p[5].to_i
 	  when 1
-	    first = Date.new(year, 1, 1)
-	    last = Date.new(year, 3, 31)
+	    period.first = Date.new(year, 1, 1)
+	    period.last = Date.new(year, 3, 31)
 	  when 2
-	    first = Date.new(year, 4, 1)
-	    last = Date.new(year, 6, 30)
+	    period.first = Date.new(year, 4, 1)
+	    period.last = Date.new(year, 6, 30)
 	  when 3
-	    first = Date.new(year, 7, 1)
-	    last = Date.new(year, 9, 30)
+	    period.first = Date.new(year, 7, 1)
+	    period.last = Date.new(year, 9, 30)
 	  when 4
-	    first = Date.new(year, 10, 1)
-	    last = Date.new(year, 12, 31)
+	    period.first = Date.new(year, 10, 1)
+	    period.last = Date.new(year, 12, 31)
 	  else
 	    raise StandardError.new("Invalid period '#{p}'.")
 	  end
 	else
-	  first = Date.new(year, 1, 1)
-	  last = Date.new(year, 12, 31)
+	  period.first = Date.new(year, 1, 1)
+	  period.last = Date.new(year, 12, 31)
 	end
 	today = Date.today
-	last = today if today < last
-	[first, last]
+	period.last = today if today < period.last
+	period
       end
 
       def read_str(label)

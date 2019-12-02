@@ -25,7 +25,7 @@ module BalanceBook
       extend Base
 
       def self.list(book, args={})
-	first, last = extract_date_range(book, args)
+	period = extract_period(book, args)
 	# TBD filter params like status, category, etc
 	cur = book.fx.base
 	tsv = args.has_key?(:tsv)
@@ -44,7 +44,7 @@ module BalanceBook
 	total = 0.0
 	book.company.ledger.each { |t|
 	  d = Date.parse(t.date)
-	  next if d < first || last < d
+	  next unless period.in_range(d)
 	  # TBD filters
 	  table.add_row(t)
 	  total += t.amount_in_currency(book, cur)

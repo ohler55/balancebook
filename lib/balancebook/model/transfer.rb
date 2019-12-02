@@ -14,6 +14,10 @@ module BalanceBook
       attr_accessor :received # amount in to currecny
       attr_accessor :note
 
+      def prepare(book, company)
+	# TBD from, to, date
+      end
+
       def validate(book)
 	validate_date('Transaction date', @date)
 

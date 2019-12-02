@@ -9,7 +9,7 @@ module BalanceBook
       extend Base
 
       def self.show(book, args={})
-	first, last = extract_date_range(book, args)
+	period = extract_period(book, args)
 
 	puts "\nForeign Exchange Rate (base: #{book.fx.base})" if $verbose
 	fmt = "%10s" + "  %10.6f" * book.fx.currencies.size
@@ -17,7 +17,7 @@ module BalanceBook
 	     book.fx.currencies.map { |c| c.id }.join("#{Table::NORMAL}  #{Table::UNDERLINE}       ") +
 	     "#{Table::NORMAL}"
 
-	first.step(last, 1) { |d|
+	period.first.step(period.last, 1) { |d|
 	  ds = d.to_s
 	  vals = [ds]
 	  present = false
@@ -31,8 +31,8 @@ module BalanceBook
       end
 
       def self.update(book, args={})
-	first, last = extract_date_range(book, args)
-	first.step(last, 1) { |d|
+	period = extract_period(book, args)
+	period.first.step(period.last, 1) { |d|
 	  u = book.fx_url.gsub('${date}', d.to_s)
 	  need = false
 	  book.fx.currencies.each { |c|
