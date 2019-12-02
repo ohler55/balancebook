@@ -8,6 +8,18 @@ remember
 todo
 -----------
 
+- links
+ - list all entries not linked
+ - bb link entry
+  - suggest (look in all accounts with matching currency and value)
+  - account
+  - list of transaction IDs
+   - maybe enter each one until balance becomes zero
+  - offer to link on new entry
+- receipts
+ - list entries without receipts
+  - maybe a specific value saying "no receipt", maybe as a blank string? vs nil which is not checked yet
+
 - currency as int? or maybe just round correctly on conversions
  - currency.fmt(val)
   - format with symbol and shifted

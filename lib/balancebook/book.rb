@@ -13,6 +13,7 @@ module BalanceBook
     attr_accessor :save_ok
     attr_accessor :reports
     attr_accessor :acct_info
+    attr_accessor :verbose
 
     def initialize(data_file, fx_file, fx_url, backups, save_ok, acct_info)
       @data_file = File.expand_path(data_file)
@@ -113,6 +114,8 @@ module BalanceBook
 	save_fx if @save_ok
       when 'account'
 	updated = Cmd::Account.update(self, args)
+      when 'links'
+	updated = Cmd::Links.update(self, args)
       else
 	puts "*** update #{type} #{args}"
 	# TBD
@@ -199,6 +202,8 @@ module BalanceBook
       case type
       when 'balance'
 	Cmd::Balance.report(self, args)
+      when 'links'
+	Cmd::Links.report(self, args)
       end
 =begin
       rep = @reports.send(type, args)

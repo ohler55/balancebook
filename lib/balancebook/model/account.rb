@@ -74,6 +74,22 @@ module BalanceBook
 	nil
       end
 
+      def match_trans(date, amount, margin=0)
+	unless @transactions.nil?
+	  @transactions.each { |t|
+	    # TBD leeway on date
+	    return t if date == t.date && amount == t.amount
+	    if 0 < margin
+	      d = Date.parse(date)
+	      lo = d.prev_day(margin).to_s
+	      hi = d.next_day(margin).to_s
+	      return t if lo <= t.date && t.date <= hi && amount == t.amount
+	    end
+	  }
+	end
+	nil
+      end
+
       def balance
 	total = 0.0
 	@transactions.each { |t| total += t.amount }

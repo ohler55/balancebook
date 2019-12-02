@@ -105,6 +105,7 @@ end
 
 begin
   book = BalanceBook::Book.new($data, $fx_file, $fx_url, $backups, $save_ok, $acct_info)
+  book.verbose = $verbose
   book.validate
   args = {}
   cmds[2..].each { |a|
