@@ -62,6 +62,8 @@ module BalanceBook
       def self.update(book, args={})
 	changed = nil
 	period = extract_period(book, args)
+	cash = args.has_key?(:cash)
+
 	book.company.ledger.each { |e|
 	  date = Date.parse(e.date)
 	  next unless period.in_range(date)
@@ -78,6 +80,11 @@ module BalanceBook
 	      break
 	    end
 	  }
+	  next if !cash || Model::Account::CASH != acct.kind
+	  match = acct.make_cash_trans(e.date, e.amount, e.who)
+	  link(e, match)
+	  puts "Linked ledger #{e.id} to created #{acct.id}:#{match.id}" if book.verbose
+	  changed = 'Ledger Links'
 	}
 	changed
       end

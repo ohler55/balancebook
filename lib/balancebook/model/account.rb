@@ -90,6 +90,17 @@ module BalanceBook
 	nil
       end
 
+      def make_cash_trans(date, amount, desc)
+	id = date.delete('-') + '01'
+	97.times { |i|
+	  break if find_trans(id).nil?
+	  id = id[0..-3] + "%02d" % [i + 2]
+	}
+	t = Transaction.new(id, date, amount, desc)
+	@transactions << t
+	t
+      end
+
       def balance
 	total = 0.0
 	@transactions.each { |t| total += t.amount }

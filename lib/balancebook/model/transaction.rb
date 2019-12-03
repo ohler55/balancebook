@@ -27,7 +27,13 @@ module BalanceBook
 	raise StandardError.new("Bank transaction ID can not be empty.") unless !@id.nil? && 0 < @id.size
 	validate_date('Transaction date', @date)
 	unless @ledger_tx.nil?
-	  raise StandardError.new("Ledger transaction #{@ledger_tx} not found.") if book.company.find_entry(@ledger_tx).nil?
+	  if @ledger_tx.is_a?(Array)
+	    @ledger_tx.each { |tx|
+	      raise StandardError.new("Ledger transaction #{tx} not found.") if book.company.find_entry(tx).nil?
+	    }
+	  else
+	    raise StandardError.new("Ledger transaction #{@ledger_tx} not found.") if book.company.find_entry(@ledger_tx).nil?
+	  end
 	end
       end
 
