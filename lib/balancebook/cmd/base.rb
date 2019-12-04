@@ -116,6 +116,11 @@ module BalanceBook
 	v.to_f
       end
 
+      def confirm(label)
+	print("#{label}: ")
+	return 'y' == STDIN.readline.strip
+      end
+
     end
   end
 end

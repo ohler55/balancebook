@@ -22,12 +22,15 @@ module BalanceBook
 			  Col.new('Amount', 10, :amount, '%.2f'),
 			  Col.new('ID', -20, :id, nil),
 			  ])
-
+	total = 0.0
 	acct.transactions.each { |t|
 	  d = Date.parse(t.date)
 	  next unless period.in_range(d)
+	  total += t.amount
 	  table.add_row(t)
 	}
+	table.add_row(Model::Transaction.new(nil, nil, nil, nil))
+	table.add_row(Model::Transaction.new(nil, nil, total, 'Total'))
 	table.display
       end
 

@@ -116,6 +116,8 @@ module BalanceBook
 	updated = Cmd::Account.update(self, args)
       when 'links'
 	updated = Cmd::Links.update(self, args)
+      when 'receipt'
+	updated = Cmd::Receipts.update(self, args)
       else
 	puts "*** update #{type} #{args}"
 	# TBD
@@ -204,6 +206,8 @@ module BalanceBook
 	Cmd::Balance.report(self, args)
       when 'links'
 	Cmd::Links.report(self, args)
+      when 'receipts'
+	Cmd::Receipts.report(self, args)
       end
 =begin
       rep = @reports.send(type, args)

@@ -53,7 +53,9 @@ module BalanceBook
 	  balances << b
 	}
 	add_transactions(book, balances, cur, period)
-	add_transfers(book, balances, cur, period)
+
+	# TBD Already covered by transactions. Could add fx loss though
+	#add_transfers(book, balances, cur, period)
 
 	ledger = Balance.new(nil, 'Ledger', cur)
 	balances << ledger
