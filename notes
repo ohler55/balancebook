@@ -10,9 +10,6 @@ todo
 
 - links
  - offer to link on new entry
-- receipts
- - list entries without receipts
-  - maybe a specific value saying "no receipt", maybe as a blank string? vs nil which is not checked yet
 
 - currency round correctly on conversions
  - currency.fmt(val)
