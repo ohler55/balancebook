@@ -178,6 +178,8 @@ module BalanceBook
 	Cmd::Customer.list(self, args)
       when 'transfer', 'xfer'
 	Cmd::Transfer.list(self, args)
+      when 'receipts'
+	Cmd::Receipts.report(self, args)
       else
 	raise StandardError.new("#{type} is not a valid type for a list command.")
       end
@@ -224,12 +226,12 @@ module BalanceBook
 
     def save_fx
       rotate_files(@fx_file)
-      Oj.to_file(@fx_file, @fx, mode: :object, indent: 2, ignore_under: true)
+      Oj.to_file(@fx_file, @fx, mode: :object, indent: 2, ignore_under: true, omit_nil: true)
     end
 
     def save_company
       rotate_files(@data_file)
-      Oj.to_file(@data_file, @company, mode: :object, indent: 2, ignore_under: true)
+      Oj.to_file(@data_file, @company, mode: :object, indent: 2, ignore_under: true, omit_nil: true)
     end
 
     def rotate_files(f)

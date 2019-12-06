@@ -89,6 +89,7 @@ module BalanceBook
 	model.file = args[:file] || read_str('File')
 	# TBD verify file exists
 	model.note = args[:note] || read_str('Note')
+	model.note = nil if 0 == model.note.size
 	model.validate(book)
 	model
       end
