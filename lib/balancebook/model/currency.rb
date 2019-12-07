@@ -31,6 +31,7 @@ module BalanceBook
       end
 
       def rate(date)
+	return 1.0 if @rates.nil? # base currency
 	date = date.to_s
 	# TBD divide and conquer using ratio of diff from first and last (ratio search)
 	@rates.each { |r|

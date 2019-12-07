@@ -73,6 +73,12 @@ module BalanceBook
 	@company.add_entry(self, obj) unless obj.nil?
       when 'transaction', 'trans', 'bank'
 	obj = Cmd::Transactions.create(self, args)
+      when 'transfer'
+	obj = Cmd::Transfer.create(self, args)
+	unless obj.nil?
+	  @company.add_transfer(self, obj[0])
+	  @company.add_entry(self, obj[1])
+	end
       else
 	puts "*** new #{type} #{args}"
 	# TBD
@@ -85,7 +91,14 @@ module BalanceBook
 	else
 	  puts Oj.dump(obj, indent: 2)
 	end
-	puts "\n#{obj.class.to_s.split('::')[-1]} #{obj.id} added.\n\n"
+	if obj.is_a?(Array)
+	  obj.each { |o|
+	    puts "\n#{o.class.to_s.split('::')[-1]} #{o.id} added."
+	  }
+	  puts
+	else
+	  puts "\n#{obj.class.to_s.split('::')[-1]} #{obj.id} added.\n\n"
+	end
       end
     end
 

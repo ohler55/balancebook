@@ -8,8 +8,17 @@ remember
 todo
 -----------
 
+- Field class for editing entries
+ - choices can be more complex with help attached
+ - allow block instead of choices (maybe that how to do help)
+
+- reorg command args to be [obj verb args]
+
+- interactive mode
+
 - links
  - offer to link on new entry
+  - choice of 1 if there is a matching link
 
 - currency round correctly on conversions
  - currency.fmt(val)

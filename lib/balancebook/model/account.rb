@@ -8,6 +8,7 @@ module BalanceBook
       CHECKING = 'CHECKING'
       SAVINGS = 'SAVINGS'
       CASH = 'CASH'
+      FX_LOSS = 'FX_LOSS'
 
       attr_accessor :id
       attr_accessor :name
@@ -32,7 +33,7 @@ module BalanceBook
       def validate(book)
 	raise StandardError.new("Account ID can not be empty.") unless !@id.nil? && 0 < @id.size
 	raise StandardError.new("Account name can not be empty.") unless !@name.nil? && 0 < @name.size
-	raise StandardError.new("Account kind of '#{@kind}' is not valid.") unless [CHECKING, SAVINGS, CASH].include?(@kind)
+	raise StandardError.new("Account kind of '#{@kind}' is not valid.") unless [CHECKING, SAVINGS, CASH, FX_LOSS].include?(@kind)
 	unless @transactions.nil?
 	  dups = {}
 	  @transactions.each { |t|
@@ -97,6 +98,12 @@ module BalanceBook
 	  id = id[0..-3] + "%02d" % [i + 2]
 	}
 	t = Transaction.new(id, date, amount, desc)
+	@transactions << t
+	t
+      end
+
+      def make_fx_loss_trans(date, amount, xfer_id)
+	t = Transaction.new(xfer_id, date, amount, "loss from transfer #{xfer_id}")
 	@transactions << t
 	t
       end

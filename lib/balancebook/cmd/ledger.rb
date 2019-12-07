@@ -71,6 +71,8 @@ module BalanceBook
 	raise StandardError.new("Entry category #{model.category} not found.") if cat.nil?
 	model.amount = args[:amount] || read_amount('Amount')
 	model.amount= model.amount.to_f
+	raise StandardError.new("Entry amount #{model.amount} can not be zero.") if 0.0 == model.amount
+
 	model.tip = args[:tip] || read_amount('Tip')
 	model.tip= model.tip.to_f
 
@@ -87,11 +89,13 @@ module BalanceBook
 	  model.taxes = [] if model.taxes.nil?
 	  model.taxes << ta
 	}
-	filenames = Dir.glob(File.dirname(book.data_file) + "/files/**/*").map { |p| File.file?(p) ? File.basename(p) : nil }
+	filenames = Dir.glob(File.dirname(book.data_file) + "/{files,invoices}/**/*").map { |p| File.file?(p) ? File.basename(p) : nil }
 	filenames.delete_if { |m| m.nil? }
 	model.file = args[:file] || read_str('File', filenames)
-	raise StandardError.new("#{model.file} not found.") unless !model.file.nil? && filenames.include?(model.file)
 	model.file = nil if 0 == model.file.size
+	unless '-' == model.file || model.file.nil?
+	  raise StandardError.new("#{model.file} not found.") unless filenames.include?(model.file)
+	end
 	model.note = args[:note] || read_str('Note')
 	model.note = nil if 0 == model.note.size
 	model.validate(book)

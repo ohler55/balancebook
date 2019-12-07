@@ -5,6 +5,7 @@ module BalanceBook
 
     class Transfer < Base
 
+      attr_accessor :id
       attr_accessor :date
       attr_accessor :from     # account
       attr_accessor :to       # account
@@ -13,6 +14,10 @@ module BalanceBook
       attr_accessor :sent     # amount in from currecny
       attr_accessor :received # amount in to currecny
       attr_accessor :note
+
+      def initialize(id)
+	@id = id
+      end
 
       def prepare(book, company)
 	# TBD from, to, date

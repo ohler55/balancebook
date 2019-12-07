@@ -84,6 +84,13 @@ module BalanceBook
 	end
       end
 
+      def add_account(book, acct)
+	raise StandardError.new("Duplicate account #{acct.id}.") unless find_account(acct.id).nil?
+	acct.validate(book)
+	@accounts << acct
+	@accounts.sort! { |a,b| a.id <=> b.id }
+      end
+
       def add_invoice(book, inv)
 	raise StandardError.new("Duplicate invoice #{inv.id}.") unless find_invoice(inv.id).nil?
 	inv.validate(book)
@@ -223,7 +230,13 @@ module BalanceBook
 	max + 1
       end
 
-
+      def gen_transfer_id
+	max = @transfers.size
+	@transfers.each { |t|
+	  max = t.id if max < t.id
+	}
+	max + 1
+      end
 
     end # Company
   end # Model
