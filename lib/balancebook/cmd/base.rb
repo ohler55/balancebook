@@ -1,6 +1,9 @@
 # Copyright (c) 2019, Peter Ohler, All rights reserved.
 
 require 'date'
+require 'io/console'
+
+require 'oterm'
 
 module BalanceBook
   module Cmd
@@ -67,39 +70,122 @@ module BalanceBook
 	period
       end
 
-      def read_str(label)
+      def read_str(label, choices=[])
+	vt = OTerm::VT100.new(IO.console)
+	vt.instance_variable_set('@is_vt100', true)
+	pos = 0
+	val = ''
 	print("#{label}: ")
-	STDIN.readline.strip
-      end
-
-      def read_date(label)
-	print("#{label}: ")
-	v = STDIN.readline.strip
-	if 0 < v.size
-	  unless /^(19|20)\d\d[-.](0[1-9]|1[012])[-.](0[1-9]|[12][0-9]|3[01])$/.match?(date.to_s)
-	    raise StandardError.new("#{where} of #{date} did not match format YYY-MM-DD.")
+	c = nil
+	while true
+	  prev = c
+	  c = vt.con.getch
+	  case c
+	  when "\n", "\r"
+	    break
+	  when "\x7f" # delete key
+	    next if pos <= 0
+	    pos -= 1
+	    if pos < val.size
+	      val = val[0...pos] + val[pos + 1..-1]
+	    else
+	      val = val[0...pos]
+	    end
+	    vt.left(1)
+	    vt.clear_to_end()
+	    print(val[pos..-1] + ' ')
+	    vt.left(val.size - pos)
+	  when "\x01" # ^a
+	    if 0 < pos
+	      vt.left(pos)
+	      pos = 0
+	    end
+	  when "\x02" # ^b
+	    if 0 < pos
+	      vt.left(1)
+	      pos -= 1
+	    end
+	  when "\x03" # ^c
+	    puts "\n-- cancelled --"
+	    puts
+	    Process.exit!(1)
+	  when "\x04" # ^d
+	    if pos < val.size
+	      val = val[0...pos] + val[pos + 1..-1]
+	      vt.clear_to_end()
+	      print(val[pos..-1] + ' ')
+	      vt.left(val.size - pos + 1)
+	    end
+	  when "\x05" # ^e
+	    if pos < val.size
+	      vt.right(val.size - pos)
+	      pos = val.size
+	    end
+	  when "\x06" # ^f
+	    if pos < val.size
+	      vt.right(1)
+	      pos += 1
+	    end
+	  when "\x0b" # ^k
+	    if pos < val.size
+	      val = val[0...pos]
+	      vt.clear_to_end()
+	    end
+	  when "\t"
+	    next if 0 == choices.size
+	    if "\t" == prev
+	      down = val.downcase
+	      choices.each { |c|
+		if c.downcase.start_with?(down)
+		  vt.dim
+		  print("\n  #{c}")
+		  vt.attrs_off
+		end
+	      }
+	      print("\n#{label}: #{val}")
+	      next
+	    end
+	    found = []
+	    down = val.downcase
+	    choices.each { |c| found << c if c.downcase.start_with?(down) }
+	    if 0 < found.size
+	      best = found[0]
+	      if 1 < found.size
+		found[1..-1].each { |f|
+		  best = common_start(best, f)
+		}
+	      end
+	      vt.left(pos)
+	      print(best)
+	      val = best
+	      pos = best.size
+	    end
+	  else
+	    if ' ' <= c
+	      if pos == val.size
+		pos += 1
+		val << c
+		print(c)
+	      else
+		val.insert(pos, c)
+		vt.clear_to_end()
+		print(val[pos..-1])
+		pos += 1
+		vt.left(val.size - pos)
+	      end
+	    end
 	  end
-	else
-	  v = Date.today.to_s
 	end
-	v
-      end
-
-      def read_amount(label)
-	print("#{label}: ")
-	v = STDIN.readline.strip
-	v.to_f
+	puts
+	val.strip
       end
 
       def read_float(label)
-	print("#{label}: ")
-	v = STDIN.readline.strip
-	v.to_f
+	read_str(label).to_f
       end
 
       def read_date(label)
-	print("#{label}: ")
-	v = STDIN.readline.strip
+	v = read_str(label)
 	if 0 < v.size
 	  unless /^(19|20)\d\d[-.](0[1-9]|1[012])[-.](0[1-9]|[12][0-9]|3[01])$/.match?(v)
 	    raise StandardError.new("#{v} did not match format YYYY-MM-DD.")
@@ -111,14 +197,20 @@ module BalanceBook
       end
 
       def read_amount(label)
-	print("#{label}: ")
-	v = STDIN.readline.strip
-	v.to_f
+	read_str(label).to_f
       end
 
       def confirm(label)
 	print("#{label}: ")
 	return 'y' == STDIN.readline.strip
+      end
+
+      def common_start(a, b)
+	a, b = b, a if b.size < a.size
+	a.size.times { |i|
+	  return a[0...i] if 0 != a[0..i].casecmp(b[0..i])
+	}
+	return a
       end
 
     end

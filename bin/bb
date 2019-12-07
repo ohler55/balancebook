@@ -10,6 +10,7 @@ $: << File.join(File.dirname(__FILE__), "../../oj/lib")
 $: << File.join(File.dirname(__FILE__), "../../oj/ext")
 $: << File.join(File.dirname(__FILE__), "../../ox/lib")
 $: << File.join(File.dirname(__FILE__), "../../ox/ext")
+$: << File.join(File.dirname(__FILE__), "../../oterm/lib")
 $: << File.join(File.dirname(__FILE__), "../lib")
 
 require 'optparse'

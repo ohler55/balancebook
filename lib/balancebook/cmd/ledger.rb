@@ -66,7 +66,7 @@ module BalanceBook
 	model = Model::Entry.new(id)
 	model.date = args[:date] || read_date('Date')
 	model.who = args[:who] || read_str('Who')
-	model.category = args[:cat] || read_str('Category')
+	model.category = args[:cat] || read_str('Category', book.company.categories.map { |c| c.name })
 	cat = book.company.find_category(model.category)
 	raise StandardError.new("Entry category #{model.category} not found.") if cat.nil?
 	model.amount = args[:amount] || read_amount('Amount')
@@ -74,7 +74,8 @@ module BalanceBook
 	model.tip = args[:tip] || read_amount('Tip')
 	model.tip= model.tip.to_f
 
-	model.account = args[:account] || read_str('Account')
+	model.account = args[:account] ||
+			read_str('Account', book.company.accounts.map { |a| a.id } + book.company.accounts.map { |a| a.name })
 	acct = book.company.find_account(model.account)
 	raise StandardError.new("Entry account #{@account} not found.") if acct.nil?
 	(args[:tax] || read_str('Taxes')).split(',').each { |tax|
@@ -86,8 +87,11 @@ module BalanceBook
 	  model.taxes = [] if model.taxes.nil?
 	  model.taxes << ta
 	}
-	model.file = args[:file] || read_str('File')
-	# TBD verify file exists
+	filenames = Dir.glob(File.dirname(book.data_file) + "/files/**/*").map { |p| File.file?(p) ? File.basename(p) : nil }
+	filenames.delete_if { |m| m.nil? }
+	model.file = args[:file] || read_str('File', filenames)
+	raise StandardError.new("#{model.file} not found.") unless !model.file.nil? && filenames.include?(model.file)
+	model.file = nil if 0 == model.file.size
 	model.note = args[:note] || read_str('Note')
 	model.note = nil if 0 == model.note.size
 	model.validate(book)

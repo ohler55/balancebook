@@ -160,9 +160,10 @@ module BalanceBook
       end
 
       def find_account(id)
+	return nil if @accounts.nil?
 	id = id.downcase
-	@account.each { |acct|
-	  return acct if id == acct.id.downcase
+	@accounts.each { |acct|
+	  return acct if id == acct.id.downcase || id == acct.name.downcase
 	}
 	nil
       end
@@ -195,14 +196,6 @@ module BalanceBook
 	id = id.downcase
 	@contacts.each { |c|
 	  return c if id == c.id.downcase
-	}
-	nil
-      end
-
-      def find_account(id)
-	id = id.downcase
-	@accounts.each { |a|
-	  return a if id == a.id.downcase
 	}
 	nil
       end
