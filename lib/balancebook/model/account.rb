@@ -78,7 +78,7 @@ module BalanceBook
       def match_trans(date, amount, margin=0)
 	unless @transactions.nil?
 	  @transactions.each { |t|
-	    # TBD leeway on date
+	    next unless t.ledger_tx.nil?
 	    return t if date == t.date && amount == t.amount
 	    if 0 < margin
 	      d = Date.parse(date)

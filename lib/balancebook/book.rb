@@ -79,6 +79,8 @@ module BalanceBook
 	  @company.add_transfer(self, obj[0])
 	  @company.add_entry(self, obj[1]) unless obj[1].nil?
 	end
+      when 'link'
+	obj = Cmd::Links.create(self, args)
       else
 	puts "*** new #{type} #{args}"
 	# TBD

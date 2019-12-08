@@ -22,8 +22,7 @@ module BalanceBook
 	@account = acct
 	@label = label
 	@currency = currency
-	if currency == nil
-	else
+	unless currency == nil
 	  @balance = 0.0
 	  @base_balance = 0.0
 	end
@@ -109,8 +108,8 @@ module BalanceBook
 	    date = Date.parse(t.date)
 	    next unless period.in_range(date)
 	    b.balance += t.amount
-	    b.base_balance += b.account.amount_in_currency(book, t.amount, cur, t.date)
 	  }
+	  b.base_balance = b.account.amount_in_currency(book, b.balance, cur, period.last)
 	}
       end
 

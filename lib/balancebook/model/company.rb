@@ -208,6 +208,7 @@ module BalanceBook
       end
 
       def find_entry(id)
+	id = id.to_i
 	@ledger.each { |e|
 	  return e if id == e.id
 	}

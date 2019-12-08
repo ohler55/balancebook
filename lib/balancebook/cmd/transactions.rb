@@ -10,6 +10,24 @@ module BalanceBook
     class Transactions
       extend Base
 
+      attr_accessor :id
+      attr_accessor :date
+      attr_accessor :who
+      attr_accessor :amount
+      attr_accessor :balance
+      attr_accessor :ledger_tx
+
+      def initialize(tx=nil, balance=nil)
+	unless tx.nil?
+	  @id = tx.id
+	  @date = tx.date
+	  @who = tx.who
+	  @amount = tx.amount
+	  @ledger_tx = tx.ledger_tx
+	end
+	@balance = balance
+      end
+
       def self.list(book, args={})
 	period = extract_period(book, args)
 	name = args[:id]
@@ -20,17 +38,21 @@ module BalanceBook
 			  Col.new('Date', -10, :date, nil),
 			  Col.new('Description', -60, :who, nil),
 			  Col.new('Amount', 10, :amount, '%.2f'),
-			  Col.new('ID', -20, :id, nil),
+			  Col.new('Balance', 10, :balance, '%.2f'),
+			  Col.new('ID', -30, :id, nil),
+			  Col.new('Ledger', -20, :ledger_tx, nil),
 			  ])
 	total = 0.0
-	acct.transactions.each { |t|
+	acct.transactions.reverse.each { |t|
 	  d = Date.parse(t.date)
 	  next unless period.in_range(d)
 	  total += t.amount
-	  table.add_row(t)
+	  table.add_row(new(t, total))
 	}
-	table.add_row(Model::Transaction.new(nil, nil, nil, nil))
-	table.add_row(Model::Transaction.new(nil, nil, total, 'Total'))
+	table.add_row(new)
+	tx = new(nil, total)
+	tx.who = 'Total'
+	table.add_row(new(nil, total))
 	table.display
       end
 

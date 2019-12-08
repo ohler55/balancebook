@@ -89,6 +89,41 @@ module BalanceBook
 	changed
       end
 
+      def self.create(book, args)
+	puts "\nEnter information for a ledger - transaction link"
+	eids = args[:entry] || read_str('Entry IDs')
+	entries = eids.split(',').map { |eid|
+	  eid.strip!
+	  entry = book.company.find_entry(eid)
+	  raise StandardError.new("Failed to find ledger entry #{eid}.") if entry.nil?
+	  entry
+	}
+	raise StandardError.new("At least one ledger entry is required.") unless 0 < entries.size
+	acct = entries[0]._account
+	sum = 0.0
+	entries.each { |e|
+	  sum += e.amount
+	  raise StandardError.new("All ledger entries must be for the same account.") unless acct == e._account
+	}
+	tid = args[:tx] || read_str("#{acct.name} Transaction ID")
+	tx = acct.find_trans(tid)
+	if tx.nil?
+	  if Model::Account::CASH == acct.kind
+	    tx = acct.make_cash_trans(entries[0].date, sum, 'multiple ledger entries')
+	  else
+	    raise StandardError.new("Failed to find #{acct.name} transaction #{tid}.")
+	  end
+	end
+	raise StandardError.new("Ledger amount #{sum} does not equal #{entry._account.name} amount of #{tx.amount}.") unless sum == tx.amount
+	if 1 < entries.size
+	  entries.each { |e| e.acct_tx = tx.id }
+	  tx.ledger_tx = entries.map { |e| e.id }
+	else
+	  link(entries[0], tx)
+	end
+	entries
+      end
+
       def self.link(e, t)
 	e.acct_tx = t.id
 	t.ledger_tx = e.id

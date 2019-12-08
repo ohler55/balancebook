@@ -84,7 +84,6 @@ module BalanceBook
 	@rows << obj
       end
 
-
       def display
 	puts "\n#{BOLD}#{@title}#{NORMAL}"
 	@cols.each_with_index { |col,i|
