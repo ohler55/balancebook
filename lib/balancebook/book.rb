@@ -77,7 +77,7 @@ module BalanceBook
 	obj = Cmd::Transfer.create(self, args)
 	unless obj.nil?
 	  @company.add_transfer(self, obj[0])
-	  @company.add_entry(self, obj[1])
+	  @company.add_entry(self, obj[1]) unless obj[1].nil?
 	end
       else
 	puts "*** new #{type} #{args}"
@@ -93,7 +93,7 @@ module BalanceBook
 	end
 	if obj.is_a?(Array)
 	  obj.each { |o|
-	    puts "\n#{o.class.to_s.split('::')[-1]} #{o.id} added."
+	    puts "\n#{o.class.to_s.split('::')[-1]} #{o.id} added." unless o.nil?
 	  }
 	  puts
 	else

@@ -73,6 +73,7 @@ module BalanceBook
       def read_str(label, choices=[])
 	vt = OTerm::VT100.new(IO.console)
 	vt.instance_variable_set('@is_vt100', true)
+	choices.sort!
 	pos = 0
 	val = ''
 	print("#{label}: ")

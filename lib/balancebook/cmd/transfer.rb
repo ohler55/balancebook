@@ -46,14 +46,6 @@ module BalanceBook
 	to = book.company.find_account(xfer.to)
 	raise StandardError.new("To account #{xfer.to} not found.") if to.nil?
 
-	choices = from.transactions.map { |t| t.id }
-	xfer.from_tx = args[:from_tx] || read_str('From Transaction', choices)
-	raise StandardError.new("From transaction #{xfer.from}:#{xfer.from_tx} not found.") unless choices.include?(xfer.from_tx)
-
-	choices = to.transactions.map { |t| t.id }
-	xfer.to_tx = args[:to_tx] || read_str('To Transaction', choices)
-	raise StandardError.new("To transaction #{xfer.to}:#{xfer.to_tx} not found.") unless choices.include?(xfer.to_tx)
-
 	xfer.sent = args[:sent] || read_amount('Sent Amount')
 	xfer.sent= xfer.sent.to_f
 	raise StandardError.new("Sent amount #{xfer.sent} can not be zero.") if 0.0 == xfer.sent
@@ -62,9 +54,26 @@ module BalanceBook
 	xfer.received= xfer.received.to_f
 	raise StandardError.new("Received amount #{xfer.received} can not be zero.") if 0.0 == xfer.received
 
+	choices = from.transactions.map { |t| t.id }
+	xfer.from_tx = args[:from_tx] || read_str('From Transaction', choices)
+	raise StandardError.new("From transaction #{xfer.from}:#{xfer.from_tx} not found.") unless choices.include?(xfer.from_tx)
+
+	choices = to.transactions.map { |t| t.id }
+	xfer.to_tx = args[:to_tx] || read_str('To Transaction', choices)
+	unless choices.include?(xfer.to_tx)
+	  if Model::Account::CASH == to.kind && (xfer.to_tx.nil? || 0 == xfer.to_tx.size)
+	    tx = to.make_cash_trans(xfer.date, xfer.sent, 'transfer')
+	    xfer.to_tx = tx.id
+	  else
+	    raise StandardError.new("To transaction #{xfer.to}:#{xfer.to_tx} not found.")
+	  end
+	end
+
 	xfer.note = args[:note] || read_str('Note')
 	xfer.note = nil if 0 == xfer.note.size
 	xfer.validate(book)
+
+	return [xfer, nil] if from._currency == to._currency
 
 	from_cur = from._currency
 	to_cur = to._currency

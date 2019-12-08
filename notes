@@ -8,11 +8,14 @@ remember
 todo
 -----------
 
+- choices are modified somehow (Payroll USA Corp)
+
 - Field class for editing entries
  - choices can be more complex with help attached
  - allow block instead of choices (maybe that how to do help)
 
 - reorg command args to be [obj verb args]
+ - can each obj have control over args?
 
 - interactive mode
 

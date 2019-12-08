@@ -37,9 +37,9 @@ module BalanceBook
 	id.upcase!
 	return 1.0 if id == @base
 	cur = find_currency(id)
-	raise StandardError.new("Currency %s not found.") if cur.nil?
+	raise StandardError.new("Currency #{id} not found.") if cur.nil?
 	rate = cur.rate(date)
-	raise StandardError.new("Currency %s not found.") if rate <= 0.0
+	raise StandardError.new("Currency rate for #{id} on #{date} not found.") if rate <= 0.0
 	rate
       end
 

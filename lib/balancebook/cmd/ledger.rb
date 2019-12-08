@@ -80,7 +80,8 @@ module BalanceBook
 			read_str('Account', book.company.accounts.map { |a| a.id } + book.company.accounts.map { |a| a.name })
 	acct = book.company.find_account(model.account)
 	raise StandardError.new("Entry account #{@account} not found.") if acct.nil?
-	(args[:tax] || read_str('Taxes')).split(',').each { |tax|
+	choices = book.company.taxes.map { |t| t.id }
+	(args[:tax] || read_str('Taxes', choices)).split(',').each { |tax|
 	  tax.strip!
 	  next if 0 == tax.size
 	  t = book.company.find_tax(tax)
