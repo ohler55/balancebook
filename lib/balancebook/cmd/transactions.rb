@@ -28,6 +28,25 @@ module BalanceBook
 	@balance = balance
       end
 
+      def self.cmd(book, args, hargs)
+	verb = args[0]
+	verb = 'list' if verb.nil? || verb.include?('=')
+	case verb
+	when 'delete', 'del', 'rm'
+	  # delete(book, args[1..-1], hargs)
+	when 'list'
+	  list(book, args[1..-1], hargs)
+	when 'new', 'create'
+	  create(book, args[1..-1], hargs)
+	when 'show'
+	# show(book, args[1..-1], hargs)
+	when 'update'
+	  # update(book, args[1..-1], hargs)
+	else
+	  raise StandardError.new("Transaction can not #{verb}.")
+	end
+      end
+
       def self.list(book, args, hargs={})
 	period = extract_period(book, hargs)
 	c = book.company
@@ -57,14 +76,19 @@ module BalanceBook
 	table.display
       end
 
-      def self.create(book, args)
+      def self.create(book, args, hargs)
 	puts "\nEnter information for a new Bank Tranaction"
-	aid = args[:account] || read_str('Account')
-	acct = book.company.find_account(aid)
+	c = book.company
+	aid = extract_arg(:account, "Account", args, hargs, c.accounts.map { |a| a.id } + c.accounts.map { |a| a.name })
+	acct = c.find_account(aid)
 	raise StandardError.new("Failed to find account #{name}.") if acct.nil?
-	id = args[:id] || read_str('ID')
+	id = extract_arg(:id, "ID", args[1..-1], hargs, c.accounts.map { |a| a.id } + c.accounts.map { |a| a.name })
+
+	# TBD extract date instead
 	date = args[:date] || read_str('Date')
+
 	amount = (args[:amount] || read_amount('Amount')).to_f
+
 	who = args[:who] || read_str('Description')
 	model = Model::Transaction.new(id, date, amount, who)
 	model.validate(book)

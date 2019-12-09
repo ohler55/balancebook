@@ -8,14 +8,26 @@ module BalanceBook
     class Fx
       extend Base
 
-      def self.show(book, args={})
-	period = extract_period(book, args)
+      def self.cmd(book, args, hargs)
+	verb = args[0]
+	verb = 'list' if verb.nil? || verb.include?('=')
+	case verb
+	when 'show', 'list'
+	  show(book, args[1..-1], hargs)
+	when 'update'
+	  update(book, args[1..-1], hargs)
+	else
+	  raise StandardError.new("FX can not #{verb}.")
+	end
+      end
 
-	puts "\nForeign Exchange Rate (base: #{book.fx.base})" if $verbose
+      def self.show(book, args, hargs)
+	period = extract_period(book, hargs)
+	puts "\n#{BOLD}Foreign Exchange Rate (base: #{book.fx.base}) #{NORMAL}"
 	fmt = "%10s" + "  %10.6f" * book.fx.currencies.size
-	puts "#{Table::UNDERLINE}Date      #{Table::NORMAL}  #{Table::UNDERLINE}       " +
-	     book.fx.currencies.map { |c| c.id }.join("#{Table::NORMAL}  #{Table::UNDERLINE}       ") +
-	     "#{Table::NORMAL}"
+	puts "#{UNDERLINE}Date      #{NORMAL}  #{UNDERLINE}       " +
+	     book.fx.currencies.map { |c| c.id }.join("#{NORMAL}  #{UNDERLINE}       ") +
+	     "#{NORMAL}"
 
 	period.first.step(period.last, 1) { |d|
 	  ds = d.to_s
@@ -30,8 +42,8 @@ module BalanceBook
 	}
       end
 
-      def self.update(book, args={})
-	period = extract_period(book, args)
+      def self.update(book, args, hargs)
+	period = extract_period(book, hargs)
 	period.first.step(period.last, 1) { |d|
 	  u = book.fx_url.gsub('${date}', d.to_s)
 	  need = false

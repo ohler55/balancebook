@@ -45,20 +45,27 @@ module BalanceBook
       when 'account', 'acct'
 	Cmd::Account.cmd(self, args[1..-1], hargs)
       when 'category', 'cat'
+	Cmd::Category.cmd(self, args[1..-1], hargs)
       when 'company'
+	# TBD
       when 'contact'
+	# TBD
       when 'customer'
+	Cmd::Customer.cmd(self, args[1..-1], hargs)
       when 'fx'
+	Cmd::Fx.cmd(self, args[1..-1], hargs)
       when 'invoice'
       when 'ledger'
       when 'link'
       when 'reports' #, 'report'
       when 'tax', 'taxes'
       when 'transaction', 'tx'
+	Cmd::Transactions.cmd(self, args[1..-1], hargs)
       when 'transfer', 'xfer'
       else
 	return false
       end
+      save_company() if @save_ok && @company._dirty
       true
     end
 
@@ -91,9 +98,6 @@ module BalanceBook
       when 'invoice'
 	obj = Cmd::Invoice.create(self, args)
 	@company.add_invoice(self, obj) unless obj.nil?
-      when 'category', 'cat'
-	obj = Cmd::Category.create(self, args)
-	@company.add_category(self, obj) unless obj.nil?
       when 'tax'
 	obj = Cmd::Tax.create(self, args)
 	@company.add_tax(self, obj) unless obj.nil?
@@ -176,8 +180,6 @@ module BalanceBook
     def cmd_del(type, args)
       updated = nil
       case type
-      when 'category', 'cat'
-	updated = Cmd::Category.delete(self, args)
       when 'tax'
 	updated = Cmd::Tax.delete(self, args)
       else
@@ -207,8 +209,6 @@ module BalanceBook
 	Cmd::Transactions.list(self, args)
       when 'ledger'
 	Cmd::Ledger.list(self, args)
-      when 'category', 'categories', 'cat'
-	Cmd::Category.list(self, args)
       when 'tax', 'taxes'
 	Cmd::Tax.list(self, args)
       when 'customer', 'customers', 'cust'

@@ -10,43 +10,57 @@ module BalanceBook
     class Category
       extend Base
 
-      def self.list(book, args={})
-	table = Table.new('Categories', [
-			  Col.new('Name', -30, :name, nil),
-			  ])
+      def self.cmd(book, args, hargs)
+	verb = args[0]
+	verb = 'list' if verb.nil? || verb.include?('=')
+	case verb
+	when 'delete', 'del', 'rm'
+	  delete(book, args[1..-1], hargs)
+	when 'list'
+	  list(book)
+	when 'new', 'create'
+	  create(book, args[1..-1], hargs)
+	else
+	  raise StandardError.new("Category can not #{verb}.")
+	end
+      end
 
+      def self.list(book)
+	table = Table.new('Categories', [
+			  Col.new('Name', -1, :name, nil),
+			  ])
 	table.rows = book.company.categories
 	table.display
       end
 
-      def self.create(book, args={})
+      def self.create(book, args, hargs)
 	puts "\nCreate Category"
-	name = args[:name] || read_str('Name')
+	c = book.company
+	name = extract_arg(:name, 'Name', args, hargs)
 	cat = nil
-	if book.company.find_category(name).nil?
-	  cat = Model::Category.new(name)
+	if c.find_category(name).nil?
+	  c.add_category(self, Model::Category.new(name))
 	  puts "#{name} created"
 	else
 	  puts "#{name} already exists"
 	end
-	cat
+	c.dirty
       end
 
-      def self.delete(book, args={})
+      def self.delete(book, args, hargs)
 	puts "\nDelete Category"
-	deleted = false
-	name = args[:name] || read_str('Name')
+	c = book.company
+	name = extract_arg(:name, 'Name', args, hargs)
 	cat = book.company.find_category(name)
 	if cat.nil?
 	  puts "'#{name}' does not exist"
-	elsif book.company.cat_used?(name)
+	elsif c.cat_used?(name)
 	  puts "'#{name}' still in use"
 	else
-	  book.company.cat_del(name)
-	  deleted = true
+	  c.cat_del(name)
 	  puts "'#{name}' deleted"
 	end
-	deleted
+	c.dirty
       end
 
     end

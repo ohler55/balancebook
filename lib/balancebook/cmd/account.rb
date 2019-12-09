@@ -15,17 +15,17 @@ module BalanceBook
 	verb = 'list' if verb.nil? || verb.include?('=')
 	case verb
 	when 'delete', 'del', 'rm'
-	delete(book, args, hargs)
+	  delete(book, args, hargs)
 	when 'list'
 	  list(book)
-	when 'new'
-	  new(book, args, hargs)
+	when 'new', 'create'
+	  create(book, args[1..-1], hargs)
 	when 'show'
 	  show(book, args[1..-1], hargs)
 	when 'transactions', 'transaction', 'trans'
 	  Transactions.list(book, args[1..-1], hargs)
 	when 'update'
-	  update(book, args, hargs)
+	  update(book, args[1..-1], hargs)
 	else
 	  raise StandardError.new("Account can not #{verb}.")
 	end
@@ -35,7 +35,7 @@ module BalanceBook
 	['delete', 'list', 'new', 'show', 'transactions', 'update']
       end
 
-      def self.new(book, args, hargs)
+      def self.create(book, args, hargs)
 	# TBD
       end
 

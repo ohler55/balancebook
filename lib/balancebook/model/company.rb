@@ -15,6 +15,7 @@ module BalanceBook
       attr_accessor :categories
       attr_accessor :transfers
       attr_accessor :_book
+      attr_accessor :_dirty
 
       def prepare(book)
 	@_book = book
@@ -23,6 +24,10 @@ module BalanceBook
 	@invoices.each { |inv| inv.prepare(book, self) }
 	@ledger.each { |e| e.prepare(book, self) }
 	@transfers.each { |t| t.prepare(book, self) }
+      end
+
+      def dirty
+	@_dirty = true
       end
 
       def validate(book)
