@@ -2,6 +2,9 @@
 
 module BalanceBook
   module Cmd
+    BOLD = "\x1b[1m"
+    NORMAL = "\x1b[m"
+    UNDERLINE = "\x1b[4m"
   end
 end
 

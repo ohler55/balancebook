@@ -11,6 +11,13 @@ todo
 - reorg command args to be [obj verb args]
  - can each obj have control over args?
 
+- help class
+ - text
+ - subs
+- usage should generate block of help
+ - make use in depth (use bold for text of help with subs or better base it on nesting)
+  - effect = [BOLD, UNDERLINE][depth]
+
 - balances/entries per category
 
 

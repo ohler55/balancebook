@@ -85,6 +85,17 @@ module BalanceBook
       end
 
       def display
+	# If width is 1 or -1 calc the max width for each column and reset.
+	@cols.each { |col|
+	  next if col.width < -1 || 1 < col.width
+	  max = col.label.nil? ? col.width : col.label.size
+	  @rows.each { |row|
+	    v = col.to_s(row, false)
+	    max = v.size if !v.nil? && max < v.size
+	  }
+	  col.width = 0 < col.width ? max : -1
+	}
+
 	puts "\n#{BOLD}#{@title}#{NORMAL}"
 	@cols.each_with_index { |col,i|
 	  print('  ') unless 0 == i

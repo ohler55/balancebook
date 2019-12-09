@@ -10,12 +10,79 @@ module BalanceBook
     class Account
       extend Base
 
-      def self.update(book, args={})
-	period = extract_period(book, args)
-	file = args[:file]
-	name = args[:id]
-	acct = book.company.find_account(name)
-	raise StandardError.new("Failed to find account #{name}.") if acct.nil?
+      def self.cmd(book, args, hargs)
+	verb = args[0]
+	verb = 'list' if verb.nil? || verb.include?('=')
+	case verb
+	when 'delete', 'del', 'rm'
+	delete(book, args, hargs)
+	when 'list'
+	  list(book)
+	when 'new'
+	  new(book, args, hargs)
+	when 'show'
+	  show(book, args[1..-1], hargs)
+	when 'transactions', 'transaction', 'trans'
+	  Transactions.list(book, args[1..-1], hargs)
+	when 'update'
+	  update(book, args, hargs)
+	else
+	  raise StandardError.new("Account can not #{verb}.")
+	end
+      end
+
+      def self.cmd_choices
+	['delete', 'list', 'new', 'show', 'transactions', 'update']
+      end
+
+      def self.new(book, args, hargs)
+	# TBD
+      end
+
+      def self.delete(book, args, hargs)
+	# TBD
+      end
+
+      def self.show(book, args, hargs)
+	c = book.company
+	id = extract_arg(:id, "ID", args, hargs, c.accounts.map { |a| a.id } + c.accounts.map { |a| a.name })
+
+	acct = c.find_account(id)
+	raise StandardError.new("Failed to find account #{id}.") if acct.nil?
+	puts "\n#{UNDERLINE}#{acct.name}#{' '*(80 - acct.name.size)}#{NORMAL}"
+	puts "ID:                #{acct.id}"
+	puts "Kind:              #{acct.kind}"
+	puts "Address:           #{acct.address}" unless acct.address.nil?
+	puts "ABA:               #{acct.aba}" unless acct.aba.nil?
+	puts "Number:            #{book.acct_info[acct.id]['number']}" unless book.acct_info[acct.id].nil?
+	puts "Transaction Count: #{acct.transactions.size}"
+	puts "Currency:          #{acct._currency.id}"
+	puts "Balance:           #{acct.balance.round(2)}"
+	puts
+      end
+
+      def self.list(book)
+	table = Table.new('Accounts', [
+			  Col.new('ID', -1, :id, nil),
+			  Col.new('Name', -1, :name, nil),
+			  Col.new('Balance', 10, :balance, '%.2f'),
+			  Col.new('Cur', -3, :currency, nil),
+			  Col.new('ABA', -10, :aba, nil),
+			  Col.new('Kind', -8, :kind, nil),
+			  Col.new('address', -1, :address, nil),
+			  ])
+
+	table.rows = book.company.accounts
+	table.display
+      end
+
+      def self.update(book, args, hargs)
+	period = extract_period(book, hargs)
+	id = extract_arg(:id, "ID", args, hargs, c.accounts.map { |a| a.id } + c.accounts.map { |a| a.name })
+	file = extract_arg(:file, "File", args[1..-1], hargs)
+
+	acct = book.company.find_account(id)
+	raise StandardError.new("Failed to find account #{id}.") if acct.nil?
 
 	content = File.read(File.expand_path(file))
 	ofx = OFX.parse(content)
@@ -35,34 +102,6 @@ module BalanceBook
 	}
 	acct.sort_trans
 	"Account #{acct.id}"
-      end
-
-      def self.show(book, args={})
-	name = args[:id]
-	acct = book.company.find_account(name)
-	raise StandardError.new("Failed to find account #{name}.") if acct.nil?
-	puts "\n#{acct.name} #{acct.kind.downcase}"
-	puts "ID: #{acct.id}"
-	puts "Name: #{acct.name}"
-	puts "Address: #{acct.address}"
-	puts "ABA: #{acct.aba}"
-	puts "Number: #{book.acct_info[acct.id]['number']}"
-	puts
-      end
-
-      def self.list(book, args={})
-	table = Table.new('Accounts', [
-			  Col.new('ID', -10, :id, nil),
-			  Col.new('Name', -20, :name, nil),
-			  Col.new('Balance', 10, :balance, '%.2f'),
-			  Col.new('Cur', -3, :currency, nil),
-			  Col.new('ABA', -10, :aba, nil),
-			  Col.new('Kind', -8, :kind, nil),
-			  Col.new('address', -50, :address, nil),
-			  ])
-
-	table.rows = book.company.accounts
-	table.display
       end
 
     end

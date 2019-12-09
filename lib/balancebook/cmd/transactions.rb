@@ -28,19 +28,20 @@ module BalanceBook
 	@balance = balance
       end
 
-      def self.list(book, args={})
-	period = extract_period(book, args)
-	name = args[:id]
-	acct = book.company.find_account(name)
-	raise StandardError.new("Failed to find account #{name}.") if acct.nil?
+      def self.list(book, args, hargs={})
+	period = extract_period(book, hargs)
+	c = book.company
+	id = extract_arg(:id, "ID", args, hargs, c.accounts.map { |a| a.id } + c.accounts.map { |a| a.name })
+	acct = book.company.find_account(id)
+	raise StandardError.new("Failed to find account #{id}.") if acct.nil?
 
 	table = Table.new("#{acct.name} Transactions (#{acct.currency})", [
 			  Col.new('Date', -10, :date, nil),
-			  Col.new('Description', -60, :who, nil),
+			  Col.new('Description', -1, :who, nil),
 			  Col.new('Amount', 10, :amount, '%.2f'),
 			  Col.new('Balance', 10, :balance, '%.2f'),
-			  Col.new('ID', -30, :id, nil),
-			  Col.new('Ledger', -20, :ledger_tx, nil),
+			  Col.new('ID', -1, :id, nil),
+			  Col.new('Ledger', -1, :ledger_tx, nil),
 			  ])
 	total = 0.0
 	acct.transactions.reverse.each { |t|

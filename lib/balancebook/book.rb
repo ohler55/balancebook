@@ -35,6 +35,35 @@ module BalanceBook
       @fx.validate(self)
     end
 
+    def act(args=[])
+      hargs = {}
+      args[1..].each { |a|
+	k, v = a.split('=')
+	hargs[k.to_sym] = v
+      }
+      case args[0]
+      when 'account', 'acct'
+	Cmd::Account.cmd(self, args[1..-1], hargs)
+      when 'category', 'cat'
+      when 'company'
+      when 'contact'
+      when 'customer'
+      when 'fx'
+      when 'invoice'
+      when 'ledger'
+      when 'link'
+      when 'reports' #, 'report'
+      when 'tax', 'taxes'
+      when 'transaction', 'tx'
+      when 'transfer', 'xfer'
+      else
+	return false
+      end
+      true
+    end
+
+
+     # TBD swap type and verb var names
     def cmd(verb, type, args={})
       case verb
       when 'new', 'create'
@@ -108,8 +137,6 @@ module BalanceBook
       case type
       when 'fx'
 	Cmd::Fx.show(self, args)
-      when 'account'
-	Cmd::Account.show(self, args)
       when 'invoice'
 	Cmd::Invoice.show(self, args)
       when 'entry', 'ledger'
@@ -127,8 +154,6 @@ module BalanceBook
       when 'fx'
 	Cmd::Fx.update(self, args)
 	save_fx if @save_ok
-      when 'account'
-	updated = Cmd::Account.update(self, args)
       when 'links'
 	updated = Cmd::Links.update(self, args)
       when 'receipt'
@@ -159,7 +184,6 @@ module BalanceBook
 	puts "*** del #{type} #{args}"
 	# TBD
 	#  invoice
-	#  account - only if not referenced by anything
 	#  enrtry
 	#  customer
       end
@@ -179,8 +203,6 @@ module BalanceBook
 	Cmd::Fx.show(self, args)
       when 'invoice', 'invoices'
 	Cmd::Invoice.list(self, args)
-      when 'account', 'accounts'
-	Cmd::Account.list(self, args)
       when 'transaction', 'transactions', 'trans', 'bank'
 	Cmd::Transactions.list(self, args)
       when 'ledger'

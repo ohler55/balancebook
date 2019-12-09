@@ -74,7 +74,7 @@ end
   end
 }
 
-opts = OptionParser.new(%{Usage: bb [options] <verb> <type> [<arg=value>...]
+opts = OptionParser.new(%{Usage: bb [options] <type> <verb> [<arg[=value]>...]
 
 Does stuff...
 
@@ -91,9 +91,9 @@ opts.on('-d', '--data String', String, 'company data file')               { |f| 
 opts.on('-f', '--fx-file String', String, 'exchange rate file')           { |f| $fx_file = f }
 opts.on('-u', '--fx-url String', String, 'exchange rate URL')             { |u| $fx_url = u }
 opts.on('-h', '--help', 'Show this display')                              { puts opts.help; Process.exit!(0) }
-cmds = opts.parse(ARGV)
+args = opts.parse(ARGV)
 
-if cmds.size < 2
+if args.size < 2
   puts opts.help
   Process.exit!(1)
 end
@@ -108,12 +108,15 @@ begin
   book = BalanceBook::Book.new($data, $fx_file, $fx_url, $backups, $save_ok, $acct_info)
   book.verbose = $verbose
   book.validate
-  args = {}
-  cmds[2..].each { |a|
-    k, v = a.split('=')
-    args[k.to_sym] = v
-  }
-  book.cmd(cmds[0], cmds[1], args)
+
+  hargs = {}
+  if !book.act(args)
+    args[2..].each { |a|
+      k, v = a.split('=')
+      hargs[k.to_sym] = v
+    }
+    book.cmd(args[0], args[1], hargs)
+  end
 rescue Exception => e
   puts "\n*-*-* #{e.class}: #{e.message}"
   e.backtrace.each { |line| puts "  #{line}" } if $verbose
