@@ -109,6 +109,12 @@ module BalanceBook
 	@categories.sort_by! { |cat| cat.name }
       end
 
+      def add_customer(cust)
+	raise StandardError.new("Duplicate customer #{cust.name}.") unless find_customer(cust.name).nil?
+	@customers << cust
+	@customers.sort_by! { |c| c.name }
+      end
+
       def add_tax(book, tax)
 	raise StandardError.new("Duplicate tax #{tax.id}.") unless find_tax(tax.id).nil?
 	@taxes << tax

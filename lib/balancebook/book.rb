@@ -55,7 +55,8 @@ module BalanceBook
       when 'fx'
 	Cmd::Fx.cmd(self, args[1..-1], hargs)
       when 'invoice'
-      when 'ledger'
+      when 'ledger', 'entry'
+	Cmd::Ledger.cmd(self, args[1..-1], hargs)
       when 'link'
       when 'reports' #, 'report'
       when 'tax', 'taxes'

@@ -37,7 +37,16 @@ module BalanceBook
       end
 
       def self.create(book, args, hargs)
-	# TBD
+	puts "\nEnter information for a new Customer"
+	model = Model::Customer.new
+	model.id = extract_arg(:name, "Name", args, hargs)
+	model.currency = extract_arg(:currency, "Currency", args, hargs, book.fx.currencies.map { |c| c.id } + [book.fx.base])
+	raise StandardError.new("Currency #{model.currency} not found.") if book.fx.find_currency(model.currency).nil?
+	model.address = extract_arg(:addr, "Address", args, hargs)
+	model.notes = extract_arg(:note, "Note", args, hargs)
+	book.company.add_customer(model)
+	puts "\n#{model.class.to_s.split('::')[-1]} #{model.id} added.\n\n"
+	book.company.dirty
       end
 
       def self.delete(book, args, hargs)

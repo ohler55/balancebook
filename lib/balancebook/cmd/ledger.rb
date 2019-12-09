@@ -24,22 +24,43 @@ module BalanceBook
     class Ledger
       extend Base
 
-      def self.list(book, args={})
-	period = extract_period(book, args)
+      def self.cmd(book, args, hargs)
+	verb = args[0]
+	verb = 'list' if verb.nil? || verb.include?('=')
+	case verb
+	when 'delete', 'del', 'rm'
+	  #delete(book, args[1..-1], hargs)
+	when 'list'
+	  list(book, args[1..-1], hargs)
+	when 'new', 'create'
+	  create(book, args[1..-1], hargs)
+	when 'show'
+	  show(book, args[1..-1], hargs)
+	when 'transactions', 'transaction', 'trans'
+	  Transactions.list(book, args[1..-1], hargs)
+	when 'update'
+	  update(book, args[1..-1], hargs)
+	else
+	  raise StandardError.new("Account can not #{verb}.")
+	end
+      end
+
+      def self.list(book, args, hargs)
+	period = extract_period(book, hargs)
 	# TBD filter params like status, category, etc
-	cur = book.fx.base
-	tsv = args.has_key?(:tsv)
-	csv = args.has_key?(:csv)
+	cur = book.fx.base # TBD look in hargs
+	tsv = hargs.has_key?(:tsv)
+	csv = hargs.has_key?(:csv)
 
 	table = Table.new('Ledger', [
 			  Col.new('ID', 6, :id, "%d"),
 			  Col.new('Date', -10, :date, nil),
-			  Col.new('Description', -40, :who, nil),
-			  Col.new('Category', -26, :category, nil),
-			  Col.new('Account', -10, :account, nil),
+			  Col.new('Description', -1, :who, nil),
+			  Col.new('Category', -1, :category, nil),
+			  Col.new('Account', -1, :account, nil),
 			  Col.new('Amount', 10, :amount, '%.2f'),
 			  CurCol.new("Amount #{cur}", 10, '%.2f', book, cur),
-			  Col.new('Link', -10, :acct_tx, nil),
+			  Col.new('Link', -1, :acct_tx, nil),
 			  ])
 	total = 0.0
 	book.company.ledger.each { |t|
@@ -60,28 +81,28 @@ module BalanceBook
 	end
       end
 
-      def self.create(book, args)
+      def self.create(book, args, hargs)
 	puts "\nEnter information for a new Ledger Entry"
 	id = book.company.gen_tx_id
 	model = Model::Entry.new(id)
-	model.date = args[:date] || read_date('Date')
-	model.who = args[:who] || read_str('Who')
-	model.category = args[:cat] || read_str('Category', book.company.categories.map { |c| c.name })
+	model.date = hargs[:date] || read_date('Date')
+	model.who = hargs[:who] || read_str('Who')
+	model.category = hargs[:cat] || read_str('Category', book.company.categories.map { |c| c.name })
 	cat = book.company.find_category(model.category)
 	raise StandardError.new("Entry category #{model.category} not found.") if cat.nil?
-	model.amount = args[:amount] || read_amount('Amount')
+	model.amount = hargs[:amount] || read_amount('Amount')
 	model.amount= model.amount.to_f
 	raise StandardError.new("Entry amount #{model.amount} can not be zero.") if 0.0 == model.amount
 
-	model.tip = args[:tip] || read_amount('Tip')
+	model.tip = hargs[:tip] || read_amount('Tip')
 	model.tip= model.tip.to_f
 
-	model.account = args[:account] ||
+	model.account = hargs[:account] ||
 			read_str('Account', book.company.accounts.map { |a| a.id } + book.company.accounts.map { |a| a.name })
 	acct = book.company.find_account(model.account)
 	raise StandardError.new("Entry account #{@account} not found.") if acct.nil?
 	choices = book.company.taxes.map { |t| t.id }
-	(args[:tax] || read_str('Taxes', choices)).split(',').each { |tax|
+	(hargs[:tax] || read_str('Taxes', choices)).split(',').each { |tax|
 	  tax.strip!
 	  next if 0 == tax.size
 	  t = book.company.find_tax(tax)
@@ -92,35 +113,38 @@ module BalanceBook
 	}
 	filenames = Dir.glob(File.dirname(book.data_file) + "/{files,invoices}/**/*").map { |p| File.file?(p) ? File.basename(p) : nil }
 	filenames.delete_if { |m| m.nil? }
-	model.file = args[:file] || read_str('File', filenames)
+	model.file = hargs[:file] || read_str('File', filenames)
 	model.file = nil if 0 == model.file.size
 	unless '-' == model.file || model.file.nil?
 	  raise StandardError.new("#{model.file} not found.") unless filenames.include?(model.file)
 	end
-	model.note = args[:note] || read_str('Note')
+	model.note = hargs[:note] || read_str('Note')
 	model.note = nil if 0 == model.note.size
 	model.validate(book)
-	model
+	book.company.add_entry(book, model)
+	puts "\n#{model.class.to_s.split('::')[-1]} #{model.id} added.\n\n"
+	book.company.dirty
       end
 
-      def self.show(book, args={})
-	id = args[:id]
-	entry = book.company.find_entry(id.to_i)
+      def self.show(book, args, hargs)
+	c = book.company
+	id = extract_arg(:id, "ID", args, hargs, c.accounts.map { |a| a.id } + c.accounts.map { |a| a.name })
+	entry = c.find_entry(id.to_i)
 	raise StandardError.new("Failed to find ledger entry #{id}.") if entry.nil?
-	puts "\nLedger Entry #{entry.id}"
-	puts "Date: #{entry.date}"
+	puts "\n#{UNDERLINE}Ledger Entry #{entry.id}#{' ' * (67 - entry.id.size)}#{NORMAL}"
+	puts "Date:        #{entry.date}"
 	puts "Description: #{entry.who}"
-	puts "Category: #{entry.category}"
-	puts "Account: #{entry.account}"
-	puts "Amount: #{entry.amount}"
-	puts "Tip: #{entry.tip}" unless entry.tip.nil? || 0.0 == entry.tip
+	puts "Category:    #{entry.category}"
+	puts "Account:     #{entry.account}"
+	puts "Amount:      #{entry.amount}"
+	puts "Tip:         #{entry.tip}" unless entry.tip.nil? || 0.0 == entry.tip
 	unless entry.taxes.nil?
 	  taxes = entry.taxes.map { |ta| "#{ta.tax} #{ta.amount}" }.join(', ')
-	  puts "Tax: #{taxes}"
+	  puts "Tax:         #{taxes}"
 	end
-	puts "File: #{entry.file}" unless entry.file.nil? || 0 == entry.file.size
-	puts "Link: #{entry.acct_tx}" unless entry.acct_tx.nil?
-	puts "Note: #{entry.note}" unless entry.note.nil? || 0 == entry.note.size
+	puts "File:        #{entry.file}" unless entry.file.nil? || 0 == entry.file.size
+	puts "Link:        #{entry.acct_tx}" unless entry.acct_tx.nil?
+	puts "Note:        #{entry.note}" unless entry.note.nil? || 0 == entry.note.size
 	puts
       end
 
