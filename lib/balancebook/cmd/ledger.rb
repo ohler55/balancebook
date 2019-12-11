@@ -95,7 +95,7 @@ module BalanceBook
 	raise StandardError.new("Entry amount #{model.amount} can not be zero.") if 0.0 == model.amount
 
 	model.tip = hargs[:tip] || read_amount('Tip')
-	model.tip= model.tip.to_f
+	model.tip = model.tip.to_f
 
 	model.account = hargs[:account] ||
 			read_str('Account', book.company.accounts.map { |a| a.id } + book.company.accounts.map { |a| a.name })
@@ -120,6 +120,7 @@ module BalanceBook
 	end
 	model.note = hargs[:note] || read_str('Note')
 	model.note = nil if 0 == model.note.size
+	model.tip = nil if 0.0 == model.tip
 	model.validate(book)
 	book.company.add_entry(book, model)
 	puts "\n#{model.class.to_s.split('::')[-1]} #{model.id} added.\n\n"

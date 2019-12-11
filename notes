@@ -11,6 +11,9 @@ todo
 - reorg command args to be [obj verb args]
  - can each obj have control over args?
 
+- get payments into invoices
+ - create and populate the T4 withholding account
+
 - help class
  - text
  - subs
