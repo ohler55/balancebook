@@ -13,6 +13,7 @@ module BalanceBook
       attr_accessor :shift
       attr_accessor :currencies
       attr_accessor :_book
+      attr_accessor :_dirty
 
       def prepare(book)
 	@_book = book
@@ -22,6 +23,10 @@ module BalanceBook
       def validate(book)
 	raise StandardError.new("Fx base can not be empty.") unless !@base.nil? && 0 < @base.size
 	@currencies.each { |c| c.validate(book) } unless @currencies.nil?
+      end
+
+      def dirty
+	@_dirty = true
       end
 
       def find_currency(id)

@@ -68,6 +68,7 @@ module BalanceBook
 	    }
 	}
 	book.fx.currencies.each { |c| c.sort }
+	book.fx.dirty
       end
 
     end

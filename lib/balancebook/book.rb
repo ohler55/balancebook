@@ -67,6 +67,7 @@ module BalanceBook
 	return false
       end
       save_company() if @save_ok && @company._dirty
+      save_fx() if @save_ok && @fx._dirty
       true
     end
 

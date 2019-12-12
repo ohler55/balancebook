@@ -51,6 +51,7 @@ module BalanceBook
 	cur = book.fx.base # TBD look in hargs
 	tsv = hargs.has_key?(:tsv)
 	csv = hargs.has_key?(:csv)
+	rev = hargs.has_key?(:reverse)
 
 	table = Table.new('Ledger', [
 			  Col.new('ID', 6, :id, "%d"),
@@ -70,6 +71,7 @@ module BalanceBook
 	  table.add_row(t)
 	  total += t.amount_in_currency(book, cur)
 	}
+	table.rows.reverse! unless rev
 	if tsv
 	  table.tsv
 	elsif csv
