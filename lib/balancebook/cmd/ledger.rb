@@ -19,6 +19,10 @@ module BalanceBook
       def value(obj)
 	obj.amount_in_currency(@book, @cur)
       end
+
+      def to_s(obj, pad=true)
+	return '' if obj.nil?
+      end
     end
 
     class Ledger
@@ -52,6 +56,7 @@ module BalanceBook
 	tsv = hargs.has_key?(:tsv)
 	csv = hargs.has_key?(:csv)
 	rev = hargs.has_key?(:reverse)
+	miss = hargs.has_key?(:missing)
 
 	table = Table.new('Ledger', [
 			  Col.new('ID', 6, :id, "%d"),
@@ -61,25 +66,31 @@ module BalanceBook
 			  Col.new('Account', -1, :account, nil),
 			  Col.new('Amount', 10, :amount, '%.2f'),
 			  CurCol.new("Amount #{cur}", 10, '%.2f', book, cur),
-			  Col.new('Link', -1, :acct_tx, nil),
+			  Col.new('Transaction', -1, :acct_tx, nil),
+			  Col.new('File', -1, :file, nil),
 			  ])
 	total = 0.0
-	book.company.ledger.each { |t|
-	  d = Date.parse(t.date)
+	book.company.ledger.each { |e|
+	  d = Date.parse(e.date)
 	  next unless period.in_range(d)
+	  next if miss && !e.acct_tx.nil? && !e.file.nil?
 	  # TBD filters
-	  table.add_row(t)
-	  total += t.amount_in_currency(book, cur)
+	  table.add_row(e)
+	  total += e.amount_in_currency(book, cur)
 	}
 	table.rows.reverse! unless rev
+	table.add_row(Model::Entry.new(nil))
+	e = Model::Entry.new(nil)
+	e.who = 'Total'
+	e.amount = total
+	table.add_row(e)
+	# Add balance line
 	if tsv
 	  table.tsv
 	elsif csv
 	  table.csv
 	else
 	  table.display
-	  puts "                    Total                                                                                         %10.2f" % [total]
-	  puts
 	end
       end
 

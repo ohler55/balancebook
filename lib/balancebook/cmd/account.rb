@@ -77,6 +77,7 @@ module BalanceBook
       end
 
       def self.update(book, args, hargs)
+	c = book.company
 	period = extract_period(book, hargs)
 	id = extract_arg(:id, "ID", args, hargs, c.accounts.map { |a| a.id } + c.accounts.map { |a| a.name })
 	file = extract_arg(:file, "File", args[1..-1], hargs)
@@ -98,10 +99,11 @@ module BalanceBook
 	  t = bt['DTPOSTED']
 	  date = "#{t[0..3]}-#{t[4..5]}-#{t[6..7]}"
 	  trans = Model::Transaction.new(bt['FITID'], date, amount, bt['NAME'].strip)
-	  acct.add_trans(trans)
+	  if acct.add_trans(trans)
+	    puts "#{trans.id} added"
+	    c.dirty
+	  end
 	}
-	acct.sort_trans
-	"Account #{acct.id}"
       end
 
     end

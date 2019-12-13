@@ -49,6 +49,7 @@ module BalanceBook
 
       def self.list(book, args, hargs={})
 	period = extract_period(book, hargs)
+	miss = hargs.has_key?(:missing)
 	c = book.company
 	id = extract_arg(:id, "ID", args, hargs, c.accounts.map { |a| a.id } + c.accounts.map { |a| a.name })
 	acct = book.company.find_account(id)
@@ -66,6 +67,7 @@ module BalanceBook
 	acct.transactions.reverse.each { |t|
 	  d = Date.parse(t.date)
 	  next unless period.in_range(d)
+	  next if miss && !t.ledger_tx.nil?
 	  total += t.amount
 	  table.add_row(new(t, total))
 	}

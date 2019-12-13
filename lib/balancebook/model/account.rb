@@ -46,16 +46,14 @@ module BalanceBook
 
       def add_trans(t)
 	x = find_trans(t.id)
-	if x.nil?
-	  if @transactions.nil?
-	    @transactions = [t]
-	  else
-	    @transactions << t
-	  end
-	  sort_trans
+	return false unless x.nil?
+	if @transactions.nil?
+	  @transactions = [t]
 	else
-	  # TBD verify no changes
+	  @transactions << t
 	end
+	sort_trans
+	true
       end
 
       def sort_trans
