@@ -10,10 +10,20 @@ module BalanceBook
     class Category
       extend Base
 
+      def self.help_cmds
+	[
+	  Help.new('delete', ['del', 'rm'], 'Delete a category', {'name' => 'Name of category to delete.'}),
+	  Help.new('list', nil, 'List all categories.', nil),
+	  Help.new('new', ['create'], 'Create a new category.', {'name' => 'Name of the category'}),
+	]
+      end
+
       def self.cmd(book, args, hargs)
 	verb = args[0]
 	verb = 'list' if verb.nil? || verb.include?('=')
 	case verb
+	when 'help', '?'
+	  help
 	when 'delete', 'del', 'rm'
 	  delete(book, args[1..-1], hargs)
 	when 'list'

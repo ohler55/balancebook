@@ -35,6 +35,25 @@ module BalanceBook
       @fx.validate(self)
     end
 
+    def help
+      puts 'Commands:'
+      [
+	Cmd::Help.new('account', ['acct'], 'Account commands', nil),
+	Cmd::Help.new('category', ['cat'], 'Category commands', nil),
+	Cmd::Help.new('company', nil, 'Company commands', nil),
+	Cmd::Help.new('contact', nil, 'Contact commands', nil),
+	Cmd::Help.new('Customer', nil, 'Customer commands', nil),
+	Cmd::Help.new('fx', nil, 'FX commands', nil),
+	Cmd::Help.new('invoice', nil, 'Invoice commands', nil),
+	Cmd::Help.new('ledger', ['entry'], 'Ledger commands', nil),
+	Cmd::Help.new('link', nil, 'Link commands linking ledger and account transactions', nil),
+	Cmd::Help.new('report', ['reports'], 'Report commands to display or generate CSV reports', nil),
+	Cmd::Help.new('tax', ['taxes'], 'Tax commands', nil),
+	Cmd::Help.new('transaction', ['trans', 'tx'], 'Account transaction commands (same as account transaction)', nil),
+	Cmd::Help.new('transfer', ['xfer'], 'Transfer commands to manage transfers between accounts', nil),
+      ].each { |h| h.show(false) }
+    end
+
     def act(args=[])
       hargs = {}
       args[1..].each { |a|
@@ -42,6 +61,8 @@ module BalanceBook
 	hargs[k.to_sym] = v
       }
       case args[0]
+      when 'help', '?'
+	help
       when 'account', 'acct'
 	Cmd::Account.cmd(self, args[1..-1], hargs)
       when 'category', 'cat'
@@ -55,14 +76,19 @@ module BalanceBook
       when 'fx'
 	Cmd::Fx.cmd(self, args[1..-1], hargs)
       when 'invoice'
+	# TBD
       when 'ledger', 'entry'
 	Cmd::Ledger.cmd(self, args[1..-1], hargs)
       when 'link'
+	# TBD
       when 'reports' #, 'report'
+	# TBD
       when 'tax', 'taxes'
-      when 'transaction', 'tx'
+	# TBD
+      when 'transaction', 'tx', 'trans'
 	Cmd::Transactions.cmd(self, args[1..-1], hargs)
       when 'transfer', 'xfer'
+	# TBD
       else
 	return false
       end

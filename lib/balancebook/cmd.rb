@@ -10,6 +10,7 @@ end
 
 require 'balancebook/cmd/period'
 require 'balancebook/cmd/base'
+require 'balancebook/cmd/help'
 require 'balancebook/cmd/table'
 require 'balancebook/cmd/account'
 require 'balancebook/cmd/balance'

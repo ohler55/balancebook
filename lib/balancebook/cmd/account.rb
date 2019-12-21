@@ -10,10 +10,37 @@ module BalanceBook
     class Account
       extend Base
 
+      def self.help_cmds
+	[
+	  Help.new('delete', ['del', 'rm'], 'Delete an account', {'id' => 'ID or name of account to delete.'}),
+	  Help.new('list', nil, 'List all accounts.', nil),
+	  Help.new('new', ['create'], 'Create a new account.', {
+		     'id' => 'ID of account (a short alias)',
+		     'name' => 'Name of the account or bank',
+		     'kind' => 'CHECKING, SAVINGS, or CASH',
+		     'addr' => 'Address of bank',
+		     'aba' => 'ABA number',
+		     'number' => 'Account number',
+		     'currency' => 'Currency of the account'
+		   }),
+	  Help.new('show', ['details'], 'Show account details.', {'id' => 'ID or name of account to display.'}),
+	  Help.new('transactions', ['trans'], 'Show account transactions.', {
+		     'id' => 'ID or name of account to display.',
+		     'period' => 'Period to display e.g., 2019q3, 2019',
+		     'first' => 'First date to display',
+		     'last' => 'Last date to display',
+		     'missing' => 'Only transactions with missing ledger entries should be displayed.'
+		   }),
+	  Help.new('update', nil, 'Update account with QFX file.', {'id' => 'ID or name of account to update.'}),
+	]
+      end
+
       def self.cmd(book, args, hargs)
 	verb = args[0]
 	verb = 'list' if verb.nil? || verb.include?('=')
 	case verb
+	when 'help', '?'
+	  help
 	when 'delete', 'del', 'rm'
 	  delete(book, args, hargs)
 	when 'list'
@@ -32,15 +59,17 @@ module BalanceBook
       end
 
       def self.cmd_choices
-	['delete', 'list', 'new', 'show', 'transactions', 'update']
+	HELP.map { |h| h.name }
       end
 
       def self.create(book, args, hargs)
 	# TBD
+	puts "Not implemented yet"
       end
 
       def self.delete(book, args, hargs)
 	# TBD
+	puts "Not implemented yet"
       end
 
       def self.show(book, args, hargs)

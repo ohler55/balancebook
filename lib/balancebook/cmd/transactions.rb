@@ -28,10 +28,38 @@ module BalanceBook
 	@balance = balance
       end
 
+      def self.help_cmds
+	[
+	  Help.new('delete', ['del', 'rm'], 'Delete a transaction', {
+		     'account' => 'Account that the transaction belongs to',
+		     'id' => 'ID of transaction to delete.',
+		   }),
+	  Help.new('list', nil, 'List all transactions.', {
+		     'account' => 'Account that the transaction belongs to',
+		     'period' => 'Period to display e.g., 2019q3, 2019',
+		     'first' => 'First date to display',
+		     'last' => 'Last date to display',
+		   }),
+	  Help.new('new', ['create'], 'Create a new transaction.', {
+		     'account' => 'Account that the transaction belongs to',
+		     'id' => 'ID of the transaction',
+		     'date' => 'Date of the transaction, e.g., 2019-12-20',
+		     'amount' => 'Amount of the transaction',
+		     'who' => 'Description of the transaction or who i twas made to',
+		   }),
+	  Help.new('show', ['details'], 'Show transaction details.', {
+		     'account' => 'Account that the transaction belongs to',
+		     'id' => 'Name of transaction to display.',
+		   }),
+	]
+      end
+
       def self.cmd(book, args, hargs)
 	verb = args[0]
 	verb = 'list' if verb.nil? || verb.include?('=')
 	case verb
+	when 'help', '?'
+	  help
 	when 'delete', 'del', 'rm'
 	  # delete(book, args[1..-1], hargs)
 	when 'list'
@@ -40,8 +68,6 @@ module BalanceBook
 	  create(book, args[1..-1], hargs)
 	when 'show'
 	# show(book, args[1..-1], hargs)
-	when 'update'
-	  # update(book, args[1..-1], hargs)
 	else
 	  raise StandardError.new("Transaction can not #{verb}.")
 	end
@@ -65,10 +91,10 @@ module BalanceBook
 			  ])
 	total = 0.0
 	acct.transactions.reverse.each { |t|
+	  total += t.amount
 	  d = Date.parse(t.date)
 	  next unless period.in_range(d)
 	  next if miss && !t.ledger_tx.nil?
-	  total += t.amount
 	  table.add_row(new(t, total))
 	}
 	table.add_row(new)

@@ -8,10 +8,27 @@ module BalanceBook
     class Fx
       extend Base
 
+      def self.help_cmds
+	[
+	  Help.new('list', ['show'], 'List exchange rates.', {
+		     'period' => 'Period to display e.g., 2019q3, 2019',
+		     'first' => 'First date to display',
+		     'last' => 'Last date to display',
+		   }),
+	  Help.new('update', nil, 'Update exchange rates.', {
+		     'period' => 'Period to display e.g., 2019q3, 2019',
+		     'first' => 'First date to display',
+		     'last' => 'Last date to display',
+		   }),
+	]
+      end
+
       def self.cmd(book, args, hargs)
 	verb = args[0]
 	verb = 'list' if verb.nil? || verb.include?('=')
 	case verb
+	when 'help', '?'
+	  help
 	when 'show', 'list'
 	  show(book, args[1..-1], hargs)
 	when 'update'

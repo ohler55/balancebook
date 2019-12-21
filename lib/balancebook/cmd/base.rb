@@ -10,6 +10,11 @@ module BalanceBook
 
     module Base
 
+      def help
+	puts "#{to_s.split('::')[-1]} commands:"
+	help_cmds.each { |h| h.show }
+      end
+
       def extract_arg(id, label, args, hargs, choices=[])
 	return args[0] if !args.nil? && 0 < args.size && !args[0].include?('=')
 	hargs[id] || read_str(label, choices)

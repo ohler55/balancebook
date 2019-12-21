@@ -93,7 +93,7 @@ opts.on('-u', '--fx-url String', String, 'exchange rate URL')             { |u| 
 opts.on('-h', '--help', 'Show this display')                              { puts opts.help; Process.exit!(0) }
 args = opts.parse(ARGV)
 
-if args.size < 2
+if args.size < 1
   puts opts.help
   Process.exit!(1)
 end

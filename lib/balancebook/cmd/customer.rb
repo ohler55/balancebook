@@ -10,10 +10,26 @@ module BalanceBook
     class Customer
       extend Base
 
+      def self.help_cmds
+	[
+	  Help.new('delete', ['del', 'rm'], 'Delete a customer', {'name' => 'Name of customer to delete.'}),
+	  Help.new('list', nil, 'List all customers.', nil),
+	  Help.new('new', ['create'], 'Create a new customer.', {
+		     'name' => 'Name of the customer',
+		     'addr' => 'Address of bank',
+		     'currency' => 'Currency of the account',
+		     'note' => 'Any additional information about the customer',
+		   }),
+	  Help.new('show', ['details'], 'Show customer details.', {'id' => 'Name of customer to display.'}),
+	]
+      end
+
       def self.cmd(book, args, hargs)
 	verb = args[0]
 	verb = 'list' if verb.nil? || verb.include?('=')
 	case verb
+	when 'help', '?'
+	  help
 	when 'delete', 'del', 'rm'
 	  delete(book, args[1..-1], hargs)
 	when 'list'
