@@ -1,6 +1,6 @@
-# BottomLine
+# Balance Book
 
-An simple accounting package that allows for custom reporting in multiple currencies.
+A simple accounting package that allows for custom reporting in multiple currencies.
 
 ## Why
 
