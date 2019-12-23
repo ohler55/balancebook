@@ -12,57 +12,44 @@ module BalanceBook
     class Links
       extend Base
 
-      attr_accessor :id
-      attr_accessor :date
-      attr_accessor :who
-      attr_accessor :amount
-      attr_accessor :account
-      attr_accessor :link
-
-      def initialize(e)
-	@id = e.id
-	@date = e.date
-	@who = e.who
-	@amount = e.amount
-	@account = e.account
-	@link = e.acct_tx
-	@link = 'N/A' if @link.is_a?(String) && '-' == @link
+      def self.help_cmds
+	[
+	  Help.new('new', ['create'], 'Link a ledger entry to an account transaction.', {
+		     'entry' => 'ID of one or more ledger entries',
+		     'tx' => 'ID of an account transaction (can be blank for a cash account)',
+		   }),
+	  Help.new('match', nil, 'Match ledger entries and account transactions.', {
+		     'period' => 'Period to match e.g., 2019q3, 2019',
+		     'first' => 'First date to match',
+		     'last' => 'Last date to match',
+		     'cash' => 'if true auto create cash transactions for cash accounts.'
+		   }),
+	]
       end
 
-      def self.report(book, args={})
-	period = extract_period(book, args)
-	miss = args.has_key?(:missing)
-	tsv = args.has_key?(:tsv)
-	csv = args.has_key?(:csv)
-
-	table = Table.new("Links (#{period.first} to #{period.last})", [
-			  Col.new('ID', 6, :id, '%d'),
-			  Col.new('Date', -10, :date, nil),
-			  Col.new('Description', -30, :who, nil),
-			  Col.new('Amount', 10, :amount, '%.2f'),
-			  Col.new('Account', -10, :account, nil),
-			  Col.new('Link', -20, :link, nil),
-			  ])
-	book.company.ledger.each { |e|
-	  date = Date.parse(e.date)
-	  next unless period.in_range(date)
-	  next if miss && !e.acct_tx.nil?
-	  table.add_row(new(e))
-	}
-	case args[:format] || args[:fmt]
-	when 'tsv'
-	  table.tsv
-	when 'csv'
-	  table.csv
+      def self.cmd(book, args, hargs)
+	verb = args[0]
+	verb = 'list' if verb.nil? || verb.include?('=')
+	case verb
+	when 'help', '?'
+	  help
+	when 'new', 'create'
+	  create(book, args[1..-1], hargs)
+	when 'match'
+	  match(book, args[1..-1], hargs)
 	else
-	  table.display
+	  raise StandardError.new("Link can not #{verb}.")
 	end
       end
 
-      def self.update(book, args={})
+      def self.cmd_choices
+	HELP.map { |h| h.name }
+      end
+
+      def self.match(book, args, hargs)
 	changed = nil
-	period = extract_period(book, args)
-	cash = args.has_key?(:cash)
+	period = extract_period(book, hargs)
+	cash = hargs.has_key?(:cash)
 
 	book.company.ledger.each { |e|
 	  date = Date.parse(e.date)
@@ -84,14 +71,13 @@ module BalanceBook
 	  match = acct.make_cash_trans(e.date, e.amount, e.who)
 	  link(e, match)
 	  puts "Linked ledger #{e.id} to created #{acct.id}:#{match.id}" if book.verbose
-	  changed = 'Ledger Links'
+	  book.company.dirty
 	}
-	changed
       end
 
-      def self.create(book, args)
+      def self.create(book, args, hargs)
 	puts "\nEnter information for a ledger - transaction link"
-	eids = args[:entry] || read_str('Entry IDs')
+	eids = hargs[:entry] || read_str('Entry IDs')
 	entries = eids.split(',').map { |eid|
 	  eid.strip!
 	  entry = book.company.find_entry(eid)
@@ -105,7 +91,7 @@ module BalanceBook
 	  sum += e.amount
 	  raise StandardError.new("All ledger entries must be for the same account.") unless acct == e._account
 	}
-	tid = args[:tx] || read_str("#{acct.name} Transaction ID")
+	tid = hargs[:tx] || read_str("#{acct.name} Transaction ID")
 	tx = acct.find_trans(tid)
 	if tx.nil?
 	  if Model::Account::CASH == acct.kind
@@ -121,6 +107,8 @@ module BalanceBook
 	else
 	  link(entries[0], tx)
 	end
+	puts "Linked ledger #{tx.id} to  #{acct.id}:#{entries.map { |e| e.id }.join(', ')}" if book.verbose
+	book.company.dirty
 	entries
       end
 

@@ -8,6 +8,9 @@ remember
 todo
 -----------
 
+- how to mark transfers
+ - maybe use a negative number to indicate it's a transfer
+
 - reorg command args to be [obj verb args]
  - can each obj have control over args?
 

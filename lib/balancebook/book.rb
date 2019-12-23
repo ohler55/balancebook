@@ -46,7 +46,7 @@ module BalanceBook
 	Cmd::Help.new('fx', nil, 'FX commands', nil),
 	Cmd::Help.new('invoice', nil, 'Invoice commands', nil),
 	Cmd::Help.new('ledger', ['entry'], 'Ledger commands', nil),
-	Cmd::Help.new('link', nil, 'Link commands linking ledger and account transactions', nil),
+	Cmd::Help.new('link', nil, 'Link commands linking ledger entries and account transactions', nil),
 	Cmd::Help.new('report', ['reports'], 'Report commands to display or generate CSV reports', nil),
 	Cmd::Help.new('tax', ['taxes'], 'Tax commands', nil),
 	Cmd::Help.new('transaction', ['trans', 'tx'], 'Account transaction commands (same as account transaction)', nil),
@@ -63,7 +63,7 @@ module BalanceBook
       case args[0]
       when 'help', '?'
 	help
-      when 'account', 'acct'
+      when 'account', 'acct', 'bank'
 	Cmd::Account.cmd(self, args[1..-1], hargs)
       when 'category', 'cat'
 	Cmd::Category.cmd(self, args[1..-1], hargs)
@@ -79,8 +79,8 @@ module BalanceBook
 	# TBD
       when 'ledger', 'entry'
 	Cmd::Ledger.cmd(self, args[1..-1], hargs)
-      when 'link'
-	# TBD
+      when 'link', 'links'
+	Cmd::Links.cmd(self, args[1..-1], hargs)
       when 'reports' #, 'report'
 	# TBD
       when 'tax', 'taxes'
@@ -129,19 +129,12 @@ module BalanceBook
       when 'tax'
 	obj = Cmd::Tax.create(self, args)
 	@company.add_tax(self, obj) unless obj.nil?
-      when 'entry', 'ledger'
-	obj = Cmd::Ledger.create(self, args)
-	@company.add_entry(self, obj) unless obj.nil?
-      when 'transaction', 'trans', 'bank'
-	obj = Cmd::Transactions.create(self, args)
       when 'transfer'
 	obj = Cmd::Transfer.create(self, args)
 	unless obj.nil?
 	  @company.add_transfer(self, obj[0])
 	  @company.add_entry(self, obj[1]) unless obj[1].nil?
 	end
-      when 'link'
-	obj = Cmd::Links.create(self, args)
       else
 	puts "*** new #{type} #{args}"
 	# TBD
@@ -167,12 +160,8 @@ module BalanceBook
 
     def cmd_show(type, args)
       case type
-      when 'fx'
-	Cmd::Fx.show(self, args)
       when 'invoice'
 	Cmd::Invoice.show(self, args)
-      when 'entry', 'ledger'
-	Cmd::Ledger.show(self, args)
       when 'Customer', 'cust'
 	Cmd::Customer.show(self, args)
       else
@@ -183,11 +172,6 @@ module BalanceBook
     def cmd_update(type, args)
       updated = nil
       case type
-      when 'fx'
-	Cmd::Fx.update(self, args)
-	save_fx if @save_ok
-      when 'links'
-	updated = Cmd::Links.update(self, args)
       when 'receipt'
 	updated = Cmd::Receipts.update(self, args)
       else
@@ -229,14 +213,8 @@ module BalanceBook
 
     def cmd_list(type, args)
       case type
-      when 'fx', 'rate', 'rates'
-	Cmd::Fx.show(self, args)
       when 'invoice', 'invoices'
 	Cmd::Invoice.list(self, args)
-      when 'transaction', 'transactions', 'trans', 'bank'
-	Cmd::Transactions.list(self, args)
-      when 'ledger'
-	Cmd::Ledger.list(self, args)
       when 'tax', 'taxes'
 	Cmd::Tax.list(self, args)
       when 'customer', 'customers', 'cust'
@@ -250,29 +228,10 @@ module BalanceBook
       end
     end
 
-    def cmd_import(type, args)
-      case type
-      when 'entry', 'ledger'
-	changed = Cmd::Ledger.import(self, args)
-      else
-	raise StandardError.new("#{type} is not a valid type for a show command.")
-      end
-      if changed
-	if @save_ok
-	  save_company()
-	  puts "\n#{@company.name} saved.\n\n"
-	else
-	  puts "\n#{@company.name} NOT saved.\n\n"
-	end
-      end
-    end
-
     def cmd_report(type, args)
       case type
       when 'balance'
 	Cmd::Balance.report(self, args)
-      when 'links'
-	Cmd::Links.report(self, args)
       when 'receipts'
 	Cmd::Receipts.report(self, args)
       end

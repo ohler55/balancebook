@@ -28,10 +28,39 @@ module BalanceBook
     class Ledger
       extend Base
 
+      def self.help_cmds
+	[
+	  Help.new('delete', ['del', 'rm'], 'Delete a ledger entry', {'id' => 'ID of entry to delete.'}),
+	  Help.new('list', nil, 'List ledger entries.', {
+		     'period' => 'Period to display e.g., 2019q3, 2019',
+		     'first' => 'First date to display',
+		     'last' => 'Last date to display',
+		     'csv' => 'Display output as CSV',
+		     'tsv' => 'Display output as TSV',
+		     'reverse' => 'Reverse the order of the entries',
+		     'missing' => 'Display only entries missing a matching account transaction',
+		   }),
+	  Help.new('new', ['create'], 'Create a new account.', {
+		     'date' => 'Date the entry occurred',
+		     'who' => 'Description of the entry or who it was paid to',
+		     'cat' => 'Category of the entry',
+		     'account' => 'Account name or ID',
+		     'amount' => 'Total amount in teh account currency',
+		     'tip' => 'Amount of tip if applicable',
+		     'tax' => 'Tax that was applied, e.g, HST',
+		     'file' => 'Receipt or related file',
+		     'note' => 'Additional information about the entry',
+		   }),
+	  Help.new('show', ['details'], 'Show ledger entry details.', {'id' => 'ID of ledger entry to display.'}),
+	]
+      end
+
       def self.cmd(book, args, hargs)
 	verb = args[0]
 	verb = 'list' if verb.nil? || verb.include?('=')
 	case verb
+	when 'help', '?'
+	  help
 	when 'delete', 'del', 'rm'
 	  #delete(book, args[1..-1], hargs)
 	when 'list'
@@ -40,13 +69,13 @@ module BalanceBook
 	  create(book, args[1..-1], hargs)
 	when 'show'
 	  show(book, args[1..-1], hargs)
-	when 'transactions', 'transaction', 'trans'
-	  Transactions.list(book, args[1..-1], hargs)
-	when 'update'
-	  update(book, args[1..-1], hargs)
 	else
 	  raise StandardError.new("Account can not #{verb}.")
 	end
+      end
+
+      def self.cmd_choices
+	HELP.map { |h| h.name }
       end
 
       def self.list(book, args, hargs)
@@ -103,6 +132,12 @@ module BalanceBook
 	model.category = hargs[:cat] || read_str('Category', book.company.categories.map { |c| c.name })
 	cat = book.company.find_category(model.category)
 	raise StandardError.new("Entry category #{model.category} not found.") if cat.nil?
+
+	model.account = hargs[:account] ||
+			read_str('Account', book.company.accounts.map { |a| a.id } + book.company.accounts.map { |a| a.name })
+	acct = book.company.find_account(model.account)
+	raise StandardError.new("Entry account #{@account} not found.") if acct.nil?
+
 	model.amount = hargs[:amount] || read_amount('Amount')
 	model.amount= model.amount.to_f
 	raise StandardError.new("Entry amount #{model.amount} can not be zero.") if 0.0 == model.amount
@@ -110,10 +145,6 @@ module BalanceBook
 	model.tip = hargs[:tip] || read_amount('Tip')
 	model.tip = model.tip.to_f
 
-	model.account = hargs[:account] ||
-			read_str('Account', book.company.accounts.map { |a| a.id } + book.company.accounts.map { |a| a.name })
-	acct = book.company.find_account(model.account)
-	raise StandardError.new("Entry account #{@account} not found.") if acct.nil?
 	choices = book.company.taxes.map { |t| t.id }
 	(hargs[:tax] || read_str('Taxes', choices)).split(',').each { |tax|
 	  tax.strip!
