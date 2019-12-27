@@ -20,6 +20,22 @@ module BalanceBook
 	hargs[id] || read_str(label, choices)
       end
 
+      def extract_date(id, label, args, hargs)
+	v = extract_arg(id, label, args, hargs)
+	if 0 < v.size
+	  unless /^(19|20)\d\d[-.](0[1-9]|1[012])[-.](0[1-9]|[12][0-9]|3[01])$/.match?(v)
+	    raise StandardError.new("#{v} did not match format YYYY-MM-DD.")
+	  end
+	else
+	  v = Date.today.to_s
+	end
+	v
+      end
+
+      def extract_amount(id, label, args, hargs)
+	extract_arg(id, label, args, hargs).to_f.round(2)
+      end
+
       def extract_period(book, args)
 	p = args[:period]
 	if p.nil?
@@ -208,7 +224,7 @@ module BalanceBook
       end
 
       def read_amount(label)
-	read_str(label).to_f
+	read_str(label).to_f.round(2)
       end
 
       def confirm(label)

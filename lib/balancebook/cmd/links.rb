@@ -47,7 +47,6 @@ module BalanceBook
       end
 
       def self.match(book, args, hargs)
-	changed = nil
 	period = extract_period(book, hargs)
 	cash = hargs.has_key?(:cash)
 
@@ -63,7 +62,7 @@ module BalanceBook
 	    unless match.nil?
 	      link(e, match)
 	      puts "Linked ledger #{e.id} to #{acct.id}:#{match.id} within #{margin} days" if book.verbose
-	      changed = 'Ledger Links'
+	      book.company.dirty
 	      break
 	    end
 	  }
@@ -109,7 +108,6 @@ module BalanceBook
 	end
 	puts "Linked ledger #{tx.id} to  #{acct.id}:#{entries.map { |e| e.id }.join(', ')}" if book.verbose
 	book.company.dirty
-	entries
       end
 
       def self.link(e, t)

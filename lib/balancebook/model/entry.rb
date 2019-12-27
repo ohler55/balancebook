@@ -51,7 +51,7 @@ module BalanceBook
 	cat = book.company.find_category(@category)
 	raise StandardError.new("Entry category #{@category} not found.") if cat.nil?
 	unless @acct_tx.nil?
-	  raise StandardError.new("Account transaction #{@account}-#{@acct_tx} not found.") if '-' != @acct_tx && acct.find_trans(@acct_tx).nil?
+	  raise StandardError.new("Account transaction #{@account}:#{@acct_tx} not found.") if '-' != @acct_tx && acct.find_trans(@acct_tx).nil?
 	end
       end
 

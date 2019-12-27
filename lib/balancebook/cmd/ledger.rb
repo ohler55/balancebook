@@ -21,7 +21,10 @@ module BalanceBook
       end
 
       def to_s(obj, pad=true)
-	return '' if obj.nil?
+	return @label if obj.nil?
+	return '' if obj.amount.nil?
+	return @cur if obj.account.nil?
+	super
       end
     end
 
@@ -109,11 +112,11 @@ module BalanceBook
 	}
 	table.rows.reverse! unless rev
 	table.add_row(Model::Entry.new(nil))
+	# Add balance line
 	e = Model::Entry.new(nil)
 	e.who = 'Total'
 	e.amount = total
 	table.add_row(e)
-	# Add balance line
 	if tsv
 	  table.tsv
 	elsif csv

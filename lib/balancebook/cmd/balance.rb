@@ -61,7 +61,7 @@ module BalanceBook
 	book.company.ledger.each { |e|
 	  date = Date.parse(e.date)
 	  next unless period.in_range(date)
-	  ledger.balance += e.amount_in_currency(book, cur)
+	  ledger.balance += e.amount_in_currency(book, cur).round(2)
 	}
 	accrual_adjust(book, ledger, cur, period) if method.downcase == 'accrual'
 	ledger.base_balance = ledger.balance
@@ -70,8 +70,8 @@ module BalanceBook
 	cash = 0.0
 	balances.each { |b|
 	  unless b.account.nil?
-	    total += b.base_balance
-	    cash += b.base_balance if Model::Account::CASH == b.account.kind
+	    total += b.base_balance.round(2)
+	    cash += b.base_balance.round(2) if Model::Account::CASH == b.account.kind
 	  end
 	  table.add_row(b)
 	}
@@ -99,7 +99,7 @@ module BalanceBook
 	return amount if cur == base_cur
 	base_rate = book.fx.find_rate(base_cur, date)
 	src_rate = book.fx.find_rate(cur, date)
-	amount * base_rate / src_rate
+	(amount * base_rate / src_rate).round(2)
       end
 
       def self.add_transactions(book, balances, cur, period)
@@ -109,7 +109,7 @@ module BalanceBook
 	    next unless period.in_range(date)
 	    b.balance += t.amount
 	  }
-	  b.base_balance = b.account.amount_in_currency(book, b.balance, cur, period.last)
+	  b.base_balance = b.account.amount_in_currency(book, b.balance, cur, period.last).round(2)
 	}
       end
 
@@ -129,8 +129,8 @@ module BalanceBook
 	  from.balance -= t.sent
 	  to.balance += t.received
 
-	  from.base_balance -= from.account.amount_in_currency(book, t.sent, cur, t.date)
-	  to.base_balance += to.account.amount_in_currency(book, t.sent, cur, t.date)
+	  from.base_balance -= from.account.amount_in_currency(book, t.sent, cur, t.date).round(2)
+	  to.base_balance += to.account.amount_in_currency(book, t.sent, cur, t.date).round(2)
 	}
       end
 
@@ -145,7 +145,7 @@ module BalanceBook
 	  end
 	  paid_by = inv.amount - inv.paid_amount_by(period.last)
 	  next if paid_by == 0
-	  ledger.balance += amount_in_currency(book, inv.amount, inv.currency, cur, inv.submitted)
+	  ledger.balance += amount_in_currency(book, inv.amount, inv.currency, cur, inv.submitted).round(2)
 	}
       end
 

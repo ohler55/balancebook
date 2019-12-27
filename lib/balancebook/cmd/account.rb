@@ -58,10 +58,6 @@ module BalanceBook
 	end
       end
 
-      def self.cmd_choices
-	HELP.map { |h| h.name }
-      end
-
       def self.create(book, args, hargs)
 	# TBD
 	puts "Not implemented yet"

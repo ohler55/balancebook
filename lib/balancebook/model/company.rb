@@ -15,6 +15,7 @@ module BalanceBook
       attr_accessor :categories
       attr_accessor :transfers
       attr_accessor :_book
+
       attr_accessor :_dirty
 
       def prepare(book)
@@ -24,6 +25,7 @@ module BalanceBook
 	@invoices.each { |inv| inv.prepare(book, self) }
 	@ledger.each { |e| e.prepare(book, self) }
 	@transfers.each { |t| t.prepare(book, self) }
+	@_dirty = false
       end
 
       def dirty
@@ -230,6 +232,14 @@ module BalanceBook
 	id = id.downcase
 	@customers.each { |c|
 	  return c if id == c.id.downcase || id == c.name.downcase
+	}
+	nil
+      end
+
+      def find_transfer(id)
+	id = -id if id < 0
+	@transfers.each { |xfer|
+	  return xfer if id == xfer.id
 	}
 	nil
       end

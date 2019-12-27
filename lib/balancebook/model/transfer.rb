@@ -7,20 +7,29 @@ module BalanceBook
 
       attr_accessor :id
       attr_accessor :date
-      attr_accessor :from     # account
-      attr_accessor :to       # account
-      attr_accessor :from_tx  # from transaction
-      attr_accessor :to_tx    # to transaction
-      attr_accessor :sent     # amount in from currecny
-      attr_accessor :received # amount in to currecny
+      attr_accessor :from        # from account
+      attr_accessor :to          # to account
+      attr_accessor :from_tx     # from transaction
+      attr_accessor :to_tx       # to transaction
+      attr_accessor :ledger_loss # ledger entry for FX loss
+      attr_accessor :fx_loss        # FX loss
       attr_accessor :note
+      attr_accessor :_from
+      attr_accessor :_to
+      attr_accessor :_from_tx
+      attr_accessor :_to_tx
+      attr_accessor :_date
 
       def initialize(id)
 	@id = id
       end
 
       def prepare(book, company)
-	# TBD from, to, date
+	@_from = book.company.find_account(@from)
+	@_to = book.company.find_account(@to)
+	@_date = Date.parse(@date)
+	@_from_tx = @_from.find_trans(@from_tx) unless @_from.nil?
+	@_to_tx = @_to.find_trans(@to_tx) unless @_to.nil?
       end
 
       def validate(book)
@@ -30,10 +39,12 @@ module BalanceBook
 
       end
 
-      def fx_loss(book, currency=nil)
-	# TBD find currency for each, if same then return 0.0
-	#   if different then calc based on target
-	#   if currency is not nil then convert loss to currency provided
+      def sent
+	-@_from_tx.amount
+      end
+
+      def received
+	@_to_tx.amount
       end
 
     end

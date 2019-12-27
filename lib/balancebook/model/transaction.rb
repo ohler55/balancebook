@@ -31,6 +31,8 @@ module BalanceBook
 	    @ledger_tx.each { |tx|
 	      raise StandardError.new("Ledger transaction #{tx} not found.") if book.company.find_entry(tx).nil?
 	    }
+	  elsif @ledger_tx < 0
+	    raise StandardError.new("Transfer #{-@ledger_tx} not found.") if book.company.find_transfer(-@ledger_tx).nil?
 	  else
 	    raise StandardError.new("Ledger transaction #{@ledger_tx} not found.") if book.company.find_entry(@ledger_tx).nil?
 	  end

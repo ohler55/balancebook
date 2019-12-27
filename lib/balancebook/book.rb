@@ -43,6 +43,7 @@ module BalanceBook
 	Cmd::Help.new('company', nil, 'Company commands', nil),
 	Cmd::Help.new('contact', nil, 'Contact commands', nil),
 	Cmd::Help.new('Customer', nil, 'Customer commands', nil),
+	Cmd::Help.new('date-diff', ['date-diffs'], 'Date difference report', nil),
 	Cmd::Help.new('fx', nil, 'FX commands', nil),
 	Cmd::Help.new('invoice', nil, 'Invoice commands', nil),
 	Cmd::Help.new('ledger', ['entry'], 'Ledger commands', nil),
@@ -84,11 +85,15 @@ module BalanceBook
       when 'reports' #, 'report'
 	# TBD
       when 'tax', 'taxes'
-	# TBD
+	Cmd::Tax.cmd(self, args[1..-1], hargs)
       when 'transaction', 'tx', 'trans'
 	Cmd::Transactions.cmd(self, args[1..-1], hargs)
       when 'transfer', 'xfer'
-	# TBD
+	Cmd::Transfer.cmd(self, args[1..-1], hargs)
+      when 'date-diffs', 'date-diff'
+	Cmd::DateDiff.cmd(self, args[1..-1], hargs)
+      when 'payroll'
+	Cmd::Payroll.cmd(self, args[1..-1], hargs)
       else
 	return false
       end
@@ -126,9 +131,6 @@ module BalanceBook
       when 'invoice'
 	obj = Cmd::Invoice.create(self, args)
 	@company.add_invoice(self, obj) unless obj.nil?
-      when 'tax'
-	obj = Cmd::Tax.create(self, args)
-	@company.add_tax(self, obj) unless obj.nil?
       when 'transfer'
 	obj = Cmd::Transfer.create(self, args)
 	unless obj.nil?
@@ -138,8 +140,6 @@ module BalanceBook
       else
 	puts "*** new #{type} #{args}"
 	# TBD
-	#  account
-	#  customer
       end
       unless obj.nil?
 	if @save_ok
@@ -162,8 +162,6 @@ module BalanceBook
       case type
       when 'invoice'
 	Cmd::Invoice.show(self, args)
-      when 'Customer', 'cust'
-	Cmd::Customer.show(self, args)
       else
 	raise StandardError.new("#{type} is not a valid type for a show command.")
       end
@@ -179,7 +177,6 @@ module BalanceBook
 	# TBD
 	#  invoice
 	#  entry
-	#  customer
       end
       if updated
 	if @save_ok
@@ -189,36 +186,10 @@ module BalanceBook
       end
     end
 
-    def cmd_del(type, args)
-      updated = nil
-      case type
-      when 'tax'
-	updated = Cmd::Tax.delete(self, args)
-      else
-	puts "*** del #{type} #{args}"
-	# TBD
-	#  invoice
-	#  enrtry
-	#  customer
-      end
-      if updated
-	if @save_ok
-	  save_company()
-	  puts "\n#{@company.name} saved.\n\n"
-	else
-	  puts "\n#{@company.name} NOT saved.\n\n"
-	end
-      end
-    end
-
     def cmd_list(type, args)
       case type
       when 'invoice', 'invoices'
 	Cmd::Invoice.list(self, args)
-      when 'tax', 'taxes'
-	Cmd::Tax.list(self, args)
-      when 'customer', 'customers', 'cust'
-	Cmd::Customer.list(self, args)
       when 'transfer', 'xfer'
 	Cmd::Transfer.list(self, args)
       when 'receipts'

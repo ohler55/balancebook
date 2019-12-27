@@ -97,12 +97,21 @@ module BalanceBook
 	}
 	t = Transaction.new(id, date, amount, desc)
 	@transactions << t
+	sort_trans
 	t
       end
 
+      # just used for cash accounts
       def make_fx_loss_trans(date, amount, xfer_id)
-	t = Transaction.new(xfer_id, date, amount, "loss from transfer #{xfer_id}")
+	pre = date.split('-').join('')
+	tid = ''
+	@transactions.size.times { |i|
+	  tid = "%s%02d" % [pre, i]
+	  break if find_trans(tid).nil?
+	}
+	t = Transaction.new(tid, date, amount, "loss from transfer #{xfer_id}")
 	@transactions << t
+	sort_trans
 	t
       end
 
@@ -118,7 +127,6 @@ module BalanceBook
 	acct_rate = book.fx.find_rate(@currency, date)
 	amount * base_rate / acct_rate
       end
-
 
     end
   end

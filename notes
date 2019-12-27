@@ -4,28 +4,80 @@ remember
 ------------
  - ledgers is just that, no need to adjust for account transfers
  - use transfers from bank to cash to cover owner use of cash
+ - if bank trtansactions are not on the same date as a ledger entry they will not balance at the end of the year (ok I think)
 
 todo
 -----------
 
+- taxes
+ - IRS
+  - withholding
+  - social security [6.2% of first $132900 for both corp and employee]
+  - medicare [1.45% for both corp and employee] [additional 0.9% for that over 200K]
+  - FUTA (is this really needed?)
+ - FTB
+  - SDI (State Disability Insurance) [1.0% of first $118371]
+  - UI (Unemployment Insurance) [6.2% of first $7000]
+  - ETT (Employment Training Tax) [0.1% of first $7000]
+  - PIT (Personal Income Tax)
+
+calc based on gross and keep trying
+
+
+- link match must not match transactions that are not blank
+
+- new transfer should check for exisitng transaction and entries before creating
+ - date and amount must match
+ - set ledger and account tx
+
+- report day difference on ledger and transaction
+
+- transfers
+ - update to new cmds
+ - set up ledger entries and match bank trans
+ - create fx_loss ledger entry
+
 - how to mark transfers
- - maybe use a negative number to indicate it's a transfer
+ - create should set ledger_tx in transaction
+  - remove those
+ - need ledger entry
+  - add fx loss as well
+
+- include fx loss
+ - make ledger entry
+- add transfer transactions to ledger
+
+- why is ledger amount too high in 2018?
+- what to do to repay cash?
+ - transfer from account?
 
 - reorg command args to be [obj verb args]
  - can each obj have control over args?
+ - transfer
+ - invoice
+
+- reorg code
+ - for graphql
+  - use same signature for all or provide helper for common signature
+ - all models should be balancebook module
+ - cmd should be just ways to display data from core classes
+  - filter in core
+   - maybe a filter class
+    - has sub filters of period, dates, missing
+     - include method to get rec value
+    - common pass(rec)
+
+- graphql schema
+
 
 - get payments into invoices
  - create and populate the T4 withholding account
 
-- help class
- - text
- - subs
-- usage should generate block of help
- - make use in depth (use bold for text of help with subs or better base it on nesting)
-  - effect = [BOLD, UNDERLINE][depth]
 
-- balances/entries per category
-
+- reports
+ - balances/entries per category
+ - HST
+ -
 
 - choices are modified somehow (Payroll USA Corp)
 
@@ -45,12 +97,6 @@ todo
  - fx.convert(val, src_cur, dest_cur, date)
   - round
 
-
-- balance report
-
-
-- fx
- - calc value give date, src_cur, dest_cur, src_amount
 
 - store amounts as integers
  - first step is to add _currency to account or _cur
