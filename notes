@@ -17,11 +17,24 @@ todo
   - FUTA (is this really needed?)
  - FTB
   - SDI (State Disability Insurance) [1.0% of first $118371]
-  - UI (Unemployment Insurance) [6.2% of first $7000]
+  - UI (Unemployment Insurance) [5.4% of first $7000]
   - ETT (Employment Training Tax) [0.1% of first $7000]
   - PIT (Personal Income Tax)
 
-calc based on gross and keep trying
+
+- invoices
+ - record invoice - revenue (always a credit - mean negative value)
+  - add value to assets (accounts receivable) offset tor deduction of revenue
+  - paid - accounts receivable deducts
+
+- accounts
+ - balance sheet - snapshot of current state
+  - multiple accounts (assets and liabilities)
+   - bank and cash are assets
+ - income statement - transactions
+  - all transactions (income and expenses)
+
+- ledger always has 2 transactions for an expense or payment
 
 
 - link match must not match transactions that are not blank

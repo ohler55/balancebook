@@ -73,7 +73,7 @@ module BalanceBook
 	when 'show'
 	  show(book, args[1..-1], hargs)
 	else
-	  raise StandardError.new("Account can not #{verb}.")
+	  raise StandardError.new("Ledger can not #{verb}.")
 	end
       end
 

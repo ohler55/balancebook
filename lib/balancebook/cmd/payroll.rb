@@ -63,6 +63,19 @@ module BalanceBook
 	puts "California SDI:           %10.2f" % [edd_sdi(salary)]
 	puts "California ETT:           %10.2f" % [edd_ett(salary)]
 	puts
+	puts "After Taxes:              %10.2f" % [after_taxes(salary)]
+	puts
+      end
+
+      def self.after_taxes(salary)
+	salary -
+	  fed_wh(salary) -
+	  (salary * 0.062).round(2) -
+	  (salary * 0.0145).round(2) -
+	  edd_pit(salary) -
+	  edd_ui(salary) -
+	  edd_sdi(salary) -
+	  edd_ett(salary)
       end
 
       # married dual income
@@ -103,8 +116,8 @@ module BalanceBook
       end
 
       def self.edd_ui(salary)
-	return 434.0 if 7000.0 <= salary
-	salary * 0.034
+	return 378.0 if 7000.0 <= salary
+	salary * 0.054
       end
 
       def self.edd_sdi(salary)
