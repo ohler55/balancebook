@@ -94,7 +94,11 @@ module BalanceBook
 	tx = acct.find_trans(tid)
 	if tx.nil?
 	  if Model::Account::CASH == acct.kind
-	    tx = acct.make_cash_trans(entries[0].date, sum, 'multiple ledger entries')
+	    if 0 < entries.size
+	      tx = acct.make_cash_trans(entries[0].date, sum, 'multiple ledger entries')
+	    else
+	      tx = acct.make_cash_trans(entries[0].date, sum, entries[0].who)
+	    end
 	  else
 	    raise StandardError.new("Failed to find #{acct.name} transaction #{tid}.")
 	  end

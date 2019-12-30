@@ -6,9 +6,17 @@ module BalanceBook
     class Account < Base
 
       CHECKING = 'CHECKING'
-      SAVINGS = 'SAVINGS'
-      CASH = 'CASH'
-      FX_LOSS = 'FX_LOSS'
+      SAVINGS  = 'SAVINGS'
+      CASH     = 'CASH'
+
+      FX_LOSS  = 'FX_LOSS'
+
+      # TBD
+      ASSET     = 'ASSET'     # Cash, Accounts Receivable, Supplies, Equipment
+      LIABILITY = 'LIABILITY' # Notes Payable, Accounts Payable, Wages Payable
+      EQUITY    = 'EQUITY'    # Common Stock, Retained Earnings
+      REVENUE   = 'REVENUE'   # Service Revenues, Investment Revenues
+      EXPENSE   = 'EXPENSE'   # Wages Expense, Rent Expense, Depreciation Expense
 
       attr_accessor :id
       attr_accessor :name
@@ -22,6 +30,7 @@ module BalanceBook
 
       def initialize(id)
 	@id = id
+	@transactions = []
       end
 
       def prepare(book, company)

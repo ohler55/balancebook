@@ -21,6 +21,49 @@ todo
   - ETT (Employment Training Tax) [0.1% of first $7000]
   - PIT (Personal Income Tax)
 
+- todo
+ - Revenue
+ - Accounts Receivable
+ - HST account(s)
+  -
+ - Liability
+  - loan from owner
+
+- maybe have a general asset account
+ - categories for more detail
+ - buy something reduces amount in bank and (decrease or increase assets?)
+  - decrease cash (bank)
+  - increase expense account which is a negative for value
+
+- account types
+ - asset
+ - liability
+ - equity (retained earnings)
+ - revenue
+ - expense
+
+Balance Sheet accounts:
+
+Asset accounts (Examples: Cash, Accounts Receivable, Supplies, Equipment)
+Liability accounts (Examples: Notes Payable, Accounts Payable, Wages Payable)
+Stockholders' Equity accounts (Examples: Common Stock, Retained Earnings)
+Income Statement accounts:
+
+Revenue accounts (Examples: Service Revenues, Investment Revenues)
+Expense accounts (Examples: Wages Expense, Rent Expense, Depreciation Expense)
+
+
+- ideas
+ - should each account have an account receivable element?
+  - bank - means the check/expense/deposit/transfer has not cleared
+  - cash - probably not needed
+  - fx loss - probably not needed
+  - HST
+   - AR: pending invoice payment, waiting for bank clearance?
+
+- fx loss - how to get it to zero
+ - general issue, how to zero out expenses or negative accounts
+
 
 - invoices
  - record invoice - revenue (always a credit - mean negative value)

@@ -59,8 +59,25 @@ module BalanceBook
       end
 
       def self.create(book, args, hargs)
-	# TBD
-	puts "Not implemented yet"
+	c = book.company
+	puts "\nEnter information for a new Account"
+	id = extract_arg(:id, "ID", args, hargs)
+	raise StandardError.new("Account #{id} already exists.") unless c.find_account(id).nil?
+	model = Model::Account.new(id)
+	model.name = extract_arg(:name, "Name", args, hargs)
+	raise StandardError.new("Account #{id} already exists.") unless c.find_account(model.name).nil?
+	model.address = extract_arg(:addr, "Address", args, hargs)
+	model.aba = extract_arg(:aba, "ABA", args, hargs)
+	model.kind = extract_arg(:kind, "Kind", args, hargs, [
+				   Model::Account::CHECKING,
+				   Model::Account::SAVINGS,
+				   Model::Account::CASH])
+	model.currency = extract_arg(:currency, "Currency", args, hargs, book.fx.currencies.map { |c| c.id } + [book.fx.base])
+	book.company.add_account(book, model)
+	model.prepare(book, book.company)
+	model.validate(book)
+	puts "\n#{model.class.to_s.split('::')[-1]} #{model.id} added.\n\n"
+	book.company.dirty
       end
 
       def self.delete(book, args, hargs)
