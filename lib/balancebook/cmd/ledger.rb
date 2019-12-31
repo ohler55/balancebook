@@ -48,7 +48,7 @@ module BalanceBook
 		     'who' => 'Description of the entry or who it was paid to',
 		     'cat' => 'Category of the entry',
 		     'account' => 'Account name or ID',
-		     'amount' => 'Total amount in teh account currency',
+		     'amount' => 'Total amount in the account currency',
 		     'tip' => 'Amount of tip if applicable',
 		     'tax' => 'Tax that was applied, e.g, HST',
 		     'file' => 'Receipt or related file',

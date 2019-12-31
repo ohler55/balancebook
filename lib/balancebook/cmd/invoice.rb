@@ -8,9 +8,59 @@ module BalanceBook
     class Invoice
       extend Base
 
-      def self.show(book, args={})
-	id = args[:id]
-	inv = book.company.find_invoice(id)
+      def self.help_cmds
+	[
+	  Help.new('delete', ['del', 'rm'], 'Delete a invoice', {'id' => 'ID of the invoice to delete.'}),
+	  Help.new('list', nil, 'List all invoices.', {
+		     'paid' => 'Only display paid if true, only unpaid if false',
+		     'cust' => 'Only show invoices for specified customer',
+		     'period' => 'Period to display e.g., 2019q3, 2019',
+		     'first' => 'First date to display',
+		     'last' => 'Last date to display',
+		   }),
+	  Help.new('new', ['create'], 'Create a new invoice.', {
+		     'id' => 'ID of the invoice',
+		     'submitted' => 'Date the invoice was submitted',
+		     'to' => 'Customer the invoice was submitted to',
+		     'amount' => 'Total amount of the invoice',
+		     'currency' => 'Currency the invoice amount is in',
+		     'tax' => 'Tax that was applied, e.g, HST',
+		   }),
+	  Help.new('pay', nil, 'Pay an invoice.', nil),
+	  Help.new('show', ['details'], 'Show invoice details.', {'id' => 'ID of the invoice to display'}),
+	]
+      end
+
+      def self.cmd(book, args, hargs)
+	verb = args[0]
+	verb = 'list' if verb.nil? || verb.include?('=')
+	case verb
+	when 'help', '?'
+	  help
+	when 'delete', 'del', 'rm'
+	  delete(book, args[1..-1], hargs)
+	when 'list'
+	  list(book, args[1..-1], hargs)
+	when 'new', 'create'
+	  create(book, args[1..-1], hargs)
+	when 'pay', 'payment'
+	  pay(book, args[1..-1], hargs)
+	when 'show'
+	  show(book, args[1..-1], hargs)
+	else
+	  raise StandardError.new("Invoice can not #{verb}.")
+	end
+      end
+
+      def self.delete(book, args, hargs)
+	# TBD
+	puts "Not implemented yet"
+      end
+
+      def self.show(book, args, hargs)
+	c = book.company
+	id = extract_arg(:id, "ID", args, hargs, c.invoices.map { |inv| inv.id })
+	inv = c.find_invoice(id)
 	raise StandardError.new("Failed to find invoice #{id}.") if inv.nil?
 	cur = book.fx.find_currency(inv.currency)
 
@@ -35,7 +85,7 @@ module BalanceBook
 	puts
       end
 
-      def self.list(book, args={})
+      def self.list(book, args, hargs)
 	table = Table.new('Invoices', [
 			  Col.new('ID', -16, :id, nil),
 			  Col.new('To', -16, :to, nil),
@@ -45,10 +95,11 @@ module BalanceBook
 			  Col.new('Paid On', -10, :paid, nil),
 			  ])
 
-	period = extract_period(book, args)
-	paid = args[:paid]
+	period = extract_period(book, hargs)
+
+	paid = hargs[:paid]
 	paid = paid.downcase == "true" unless paid.nil?
-	cust = args[:cust] || args[:customer]
+	cust = hargs[:cust] || hargs[:customer]
 
 	book.company.invoices.each { |inv|
 	  date = Date.parse(inv.submitted)
@@ -64,26 +115,25 @@ module BalanceBook
 	table.display
       end
 
-      def self.create(book, args)
+      def self.create(book, args, hargs)
+	c = book.company
 	puts "\nEnter information for a new Invoice"
 	model = Model::Invoice.new
-	model.id = args[:id] || read_str('ID')
-	model.submitted = args[:submitted] || read_date('Submitted')
-	model.to = args[:to] || read_str('To')
-	model.amount = args[:amount] || read_amount('Amount')
-	model.amount= model.amount.to_f
-	model.currency = args[:cur] || read_str('Currency')
-	cur = book.fx.find_currency(model.currency)
-	raise StandardError.new("Failed to find currency #{model.currency}.") if cur.nil?
-	model.currency = cur.id
-	tax = args[:tax] || read_str('Tax')
+	model.id = extract_arg(:id, 'ID', args, hargs)
+	model.submitted = extract_date(:submitted, 'Submitted', args, hargs)
+	model.to = extract_arg(:to, 'To', args, hargs, c.customers.map { |c| c.id })
+	model.amount = extract_amount(:amount, 'Amount', args, hargs)
+	model.currency = extract_arg(:currency, "Currency", args, hargs, book.fx.currencies.map { |c| c.id } + [book.fx.base])
+	tax = extract_arg(:tax, 'Tax', args, hargs, c.taxes.map { |t| t.id })
 	if 0 < tax.size
 	  ta = make_taxes(book, tax, model.amount)
 	  puts ta.map { |ta| "  %s: %0.2f" % [ta.tax, ta.amount] }.join('  ') if $verbose
 	  model.taxes = ta
 	end
 	model.validate(book)
-	model
+	book.company.add_invoice(book, model)
+	puts "\n#{model.class.to_s.split('::')[-1]} #{model.id} added.\n\n"
+	book.company.dirty
       end
 
       def self.make_taxes(book, tax_input, amount)
@@ -100,6 +150,22 @@ module BalanceBook
 	  taxes << ta
 	}
 	taxes
+      end
+
+      def self.pay(book, args, hargs)
+	c = book.company
+	puts "\nEnter Invoice payment information"
+	id = extract_arg(:id, "ID", args, hargs, c.invoices.select { |inv| !inv.paid_in_full }.map { |inv| inv.id })
+	inv = c.find_invoice(id)
+	raise StandardError.new("Failed to find invoice #{id}.") if inv.nil?
+	model = Model::Payment.new
+	model.account = extract_arg(:account, 'Account', args, hargs, c.accounts.map { |a| a.id } + c.accounts.map { |a| a.name })
+	model.date = extract_amount(:date, 'Date', args, hargs)
+	model.amount = extract_amount(:amount, 'Amount', args, hargs)
+	model.note = extract_arg(:note, 'Note', args, hargs)
+	inv.pay(model)
+	puts "\nPayment of #{model.amount} to #{id} made.\n\n"
+	book.company.dirty
       end
 
     end

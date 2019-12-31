@@ -77,7 +77,7 @@ module BalanceBook
       when 'fx'
 	Cmd::Fx.cmd(self, args[1..-1], hargs)
       when 'invoice'
-	# TBD
+	Cmd::Invoice.cmd(self, args[1..-1], hargs)
       when 'ledger', 'entry'
 	Cmd::Ledger.cmd(self, args[1..-1], hargs)
       when 'link', 'links'
@@ -101,7 +101,6 @@ module BalanceBook
       save_fx() if @save_ok && @fx._dirty
       true
     end
-
 
      # TBD swap type and verb var names
     def cmd(verb, type, args={})
@@ -128,9 +127,6 @@ module BalanceBook
     def cmd_new(type, args)
       obj = nil
       case type
-      when 'invoice'
-	obj = Cmd::Invoice.create(self, args)
-	@company.add_invoice(self, obj) unless obj.nil?
       when 'transfer'
 	obj = Cmd::Transfer.create(self, args)
 	unless obj.nil?
@@ -158,15 +154,6 @@ module BalanceBook
       end
     end
 
-    def cmd_show(type, args)
-      case type
-      when 'invoice'
-	Cmd::Invoice.show(self, args)
-      else
-	raise StandardError.new("#{type} is not a valid type for a show command.")
-      end
-    end
-
     def cmd_update(type, args)
       updated = nil
       case type
@@ -175,7 +162,6 @@ module BalanceBook
       else
 	puts "*** update #{type} #{args}"
 	# TBD
-	#  invoice
 	#  entry
       end
       if updated
@@ -188,8 +174,6 @@ module BalanceBook
 
     def cmd_list(type, args)
       case type
-      when 'invoice', 'invoices'
-	Cmd::Invoice.list(self, args)
       when 'transfer', 'xfer'
 	Cmd::Transfer.list(self, args)
       when 'receipts'

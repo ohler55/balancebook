@@ -68,6 +68,10 @@ module BalanceBook
 	pd
       end
 
+      def paid_in_full
+	@amount <= paid_amount
+      end
+
       def paid_amount
 	return 0.0 if @payments.nil?
 	sum = 0.0
@@ -95,6 +99,11 @@ module BalanceBook
 	pt = Date.parse(paid).to_time.to_i
 	return nil if pt.nil?
 	((pt - t0) / 86400).to_i
+      end
+
+      def pay(payment)
+	@payments = [] if @payments.nil?
+	@payments << payment
       end
 
     end
