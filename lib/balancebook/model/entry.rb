@@ -27,11 +27,11 @@ module BalanceBook
 	# TBD  date
       end
 
-      def tax
+      def tax(kind=nil)
 	return 0.0 if @taxes.nil?
 	sum = 0.0
-	@taxes.each { |ta| sum += ta.amount }
-	sum
+	@taxes.each { |ta| sum += ta.amount if kind.nil? || kind == ta.tax }
+	sum.round(2)
       end
 
       def amount_in_currency(book, base_cur)
@@ -40,7 +40,7 @@ module BalanceBook
 	return @amount if acct.currency == base_cur
 	base_rate = book.fx.find_rate(base_cur, @date)
 	acct_rate = book.fx.find_rate(acct.currency, @date)
-	@amount * base_rate / acct_rate
+	(@amount * base_rate / acct_rate).round(2)
       end
 
       def validate(book)

@@ -77,10 +77,6 @@ module BalanceBook
 	end
       end
 
-      def self.cmd_choices
-	HELP.map { |h| h.name }
-      end
-
       def self.list(book, args, hargs)
 	period = extract_period(book, hargs)
 	# TBD filter params like status, category, etc

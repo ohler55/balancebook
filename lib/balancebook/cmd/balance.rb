@@ -17,6 +17,7 @@ module BalanceBook
       attr_accessor :balance
       attr_accessor :base_balance
       attr_accessor :currency
+      attr_accessor :base_sum
 
       def initialize(acct=nil, label=nil, currency=nil)
 	@account = acct
@@ -25,6 +26,7 @@ module BalanceBook
 	unless currency == nil
 	  @balance = 0.0
 	  @base_balance = 0.0
+	  @base_sum = 0.0
 	end
       end
 
@@ -42,6 +44,7 @@ module BalanceBook
 			  Col.new('Cur', 3, :currency, nil),
 			  Col.new('Balance', 10, :balance, '%.2f'),
 			  Col.new("Balance #{cur}", 11, :base_balance, '%.2f'),
+			  Col.new("Sum #{cur}", 11, :base_sum, '%.2f'),
 			  ])
 	balances = []
 
@@ -49,6 +52,7 @@ module BalanceBook
 	# to date.
 	book.company.accounts.each { |a|
 	  b = Balance.new(a, a.name, a.currency)
+	  b.base_sum = a.sum_in_currency(book, cur, period, nil, true)
 	  balances << b
 	}
 	add_transactions(book, balances, cur, period)
@@ -61,17 +65,20 @@ module BalanceBook
 	book.company.ledger.each { |e|
 	  date = Date.parse(e.date)
 	  next unless period.in_range(date)
-	  ledger.balance += e.amount_in_currency(book, cur).round(2)
+	  ledger.balance += e.amount_in_currency(book, cur)
 	}
 	accrual_adjust(book, ledger, cur, period) if method.downcase == 'accrual'
 	ledger.base_balance = ledger.balance
+	ledger.base_sum = ledger.balance
 
 	total = 0.0
 	cash = 0.0
+	sum = 0.0
 	balances.each { |b|
 	  unless b.account.nil?
 	    total += b.base_balance.round(2)
 	    cash += b.base_balance.round(2) if Model::Account::CASH == b.account.kind
+	    sum += b.base_sum
 	  end
 	  table.add_row(b)
 	}
@@ -79,10 +86,15 @@ module BalanceBook
 
 	b = Balance.new(nil, "Account Total", nil)
 	b.base_balance = total
+	b.base_sum = sum
 	table.add_row(b)
 
 	b = Balance.new(nil, "Cash Balance", nil)
 	b.base_balance = cash
+	table.add_row(b)
+
+	b = Balance.new(nil, "Ledger - Account", nil)
+	b.base_sum = ledger.base_sum - sum
 	table.add_row(b)
 
 	case args[:format] || args[:fmt]

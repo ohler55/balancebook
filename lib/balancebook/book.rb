@@ -83,7 +83,7 @@ module BalanceBook
       when 'link', 'links'
 	Cmd::Links.cmd(self, args[1..-1], hargs)
       when 'reports' #, 'report'
-	# TBD
+	Cmd::Report.cmd(self, args[1..-1], hargs)
       when 'tax', 'taxes'
 	Cmd::Tax.cmd(self, args[1..-1], hargs)
       when 'transaction', 'tx', 'trans'

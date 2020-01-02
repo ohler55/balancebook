@@ -9,6 +9,10 @@ remember
 todo
 -----------
 
+- fx loss for cash accounts is when expense occurred vs when paid back
+ - balance should use rate from day of expenses
+  - maybe show both rate by day and rate of today
+
 - taxes
  - IRS
   - withholding
@@ -40,7 +44,102 @@ todo
  - liability
  - equity (retained earnings)
  - revenue
- - expense
+ - expense (stuff bought, use categories to break it down further)
+
+- maybe tiered
+ - assets (income or revenue accounts)
+  - bank and cash
+  - accounts receiveable
+  - inventory
+  - fixed assets (last more than a year)
+  - income (+) invoices and payments
+   - expense
+    - categories are separate sub-accounts
+   - revenue
+  - cost of goods sold (-)
+  - expense (-)
+   - salary
+   - rent
+   - utilities
+   - office
+   - payroll taxes
+   - professional fees
+   - phone
+   - repairs
+   - travel
+   - entertainment (and meals)
+   - depreciation
+ - liability
+  - accounts payable (enter bill amounts if not paid immediately)
+   - unpaid per-diem
+  - sales tax (HST)
+ - equity
+  - loans (+)
+  - retained earnings (+)
+  - distributions (-)
+
+
+- maybe track for normal people but generate reports for accountants?
+ - each account has pending and verified
+  - buy something
+   - bank gets a pending
+   - expense (or income) account transaction created for a deduction
+   - when bank trans are downloaded the expense moved from pending to verified
+  - invoice
+   - income or invoice account gets a pending
+    - pending is just accounts receivable
+   - HST gets pending
+   - when paid
+    - move from pending to verified
+     - want to match with bank also, maybe that is just the verify step
+  - loan from owner
+   - bank increase
+   - liability increase
+ - account types - used to determine sign of entries when calculating
+  - asset (+) owned by company (bank, cash)
+   - income (+) invoices and payments
+   - cost of goods sold (-)
+   - expense (-)
+  - liability (-)
+  - equity (+ calculated)
+
+- structure
+ - support easy entry
+  - follow use cases
+  - user perspective
+ - support structured objects for store and detail queries
+  - object based, JSON store
+  - developer perspective (graphql as well as user display)
+  - simplicity of calculations and updates
+ - support accounting reports
+  - accountant perspective
+
+- drive by use cases
+ - expense with receipt
+ - bank entry occurs
+ - buy with cash
+ - invoice
+ - invoice paid
+ - loan (owner)
+ - payback loan
+ - end of year
+  - zero out income
+ - billed
+ - bill paid
+ - receive income without invoice
+ - transfer between different currency accounts
+ - capture all actions (journal? or ledger?)
+  - like pending to verified
+ - reports (how to collect and display the data)
+  - income statement (P&L)
+  - balance sheet
+  - HST report
+  - chart of accounts
+
+
+
+Retained Earnings (basically owner profit)
+
 
 Balance Sheet accounts:
 

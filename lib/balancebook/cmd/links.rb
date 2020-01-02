@@ -42,10 +42,6 @@ module BalanceBook
 	end
       end
 
-      def self.cmd_choices
-	HELP.map { |h| h.name }
-      end
-
       def self.match(book, args, hargs)
 	period = extract_period(book, hargs)
 	cash = hargs.has_key?(:cash)

@@ -90,17 +90,19 @@ module BalanceBook
 			  Col.new('Ledger', -1, :ledger_tx, nil),
 			  ])
 	total = 0.0
+	last = 0.0
 	acct.transactions.reverse.each { |t|
 	  total += t.amount
 	  d = Date.parse(t.date)
 	  next unless period.in_range(d)
 	  next if miss && !t.ledger_tx.nil?
 	  table.add_row(new(t, total))
+	  last = total
 	}
 	table.add_row(new)
-	tx = new(nil, total)
+	tx = new(nil, last)
 	tx.who = 'Total'
-	table.add_row(new(nil, total))
+	table.add_row(tx)
 	table.display
       end
 

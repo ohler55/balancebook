@@ -41,6 +41,13 @@ module BalanceBook
 	nil
       end
 
+      def tax(kind=nil)
+	return 0.0 if @taxes.nil?
+	sum = 0.0
+	@taxes.each { |ta| sum += ta.amount if kind.nil? || kind == ta.tax }
+	sum.round(2)
+      end
+
       # Most recent payment.
       def paid_date
 	recent = nil

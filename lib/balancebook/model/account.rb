@@ -137,6 +137,40 @@ module BalanceBook
 	amount * base_rate / acct_rate
       end
 
+      # If no date given then use the rate on the day of the transaction.
+      def sum_in_currency(book, base_cur, period, date=nil, ledger_date=false)
+	sum = 0.0
+	if @currency == base_cur || !date.nil?
+	  @transactions.each { |t|
+	    if ledger_date && !t._ledger_date.nil?
+	      d = t._ledger_date
+	    else
+	      d = Date.parse(t.date)
+	    end
+	    next unless period.in_range(d)
+	    sum += t.amount
+	  }
+	  unless date.nil?
+	    base_rate = book.fx.find_rate(base_cur, date)
+	    acct_rate = book.fx.find_rate(@currency, date)
+	    sum = sum * base_rate / acct_rate
+	  end
+	else
+	  @transactions.each { |t|
+	    if ledger_date && !t._ledger_date.nil?
+	      d = t._ledger_date
+	    else
+	      d = Date.parse(t.date)
+	    end
+	    next unless period.in_range(d)
+	    base_rate = book.fx.find_rate(base_cur, d)
+	    acct_rate = book.fx.find_rate(@currency, d)
+	    sum += (t.amount * base_rate / acct_rate).round(2)
+	  }
+	end
+	sum
+      end
+
     end
   end
 end
