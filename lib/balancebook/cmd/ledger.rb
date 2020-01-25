@@ -81,6 +81,9 @@ module BalanceBook
 	period = extract_period(book, hargs)
 	# TBD filter params like status, category, etc
 	cur = book.fx.base # TBD look in hargs
+	if hargs.has_key?(:currency)
+	  cur = extract_arg(:currency, "Currency", args, hargs, book.fx.currencies.map { |c| c.id } + [book.fx.base])
+	end
 	tsv = hargs.has_key?(:tsv)
 	csv = hargs.has_key?(:csv)
 	rev = hargs.has_key?(:reverse)
@@ -150,7 +153,8 @@ module BalanceBook
 	  next if 0 == tax.size
 	  t = book.company.find_tax(tax)
 	  raise StandardError.new("Entry tax #{@tax} not found.") if t.nil?
-	  ta = Model::TaxAmount.new(t.id, (model.amount - model.tip) * t.percent / (100.0 + t.percent))
+	  # amount is negative and tip is positive
+	  ta = Model::TaxAmount.new(t.id, ((model.amount + model.tip) * (1.0 - 100.0 / (100.0 + t.percent))).round(2))
 	  model.taxes = [] if model.taxes.nil?
 	  model.taxes << ta
 	}
@@ -167,6 +171,7 @@ module BalanceBook
 	model.validate(book)
 	book.company.add_entry(book, model)
 	puts "\n#{model.class.to_s.split('::')[-1]} #{model.id} added.\n\n"
+	puts "#{Oj.dump(model, indent: 2)}" if book.verbose
 	book.company.dirty
       end
 

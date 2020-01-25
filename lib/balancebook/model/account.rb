@@ -113,10 +113,10 @@ module BalanceBook
       # just used for cash accounts
       def make_fx_loss_trans(date, amount, xfer_id)
 	pre = date.split('-').join('')
-	tid = ''
+	tid = pre + '00'
 	@transactions.size.times { |i|
-	  tid = "%s%02d" % [pre, i]
 	  break if find_trans(tid).nil?
+	  tid = "%s%02d" % [pre, i]
 	}
 	t = Transaction.new(tid, date, amount, "loss from transfer #{xfer_id}")
 	@transactions << t

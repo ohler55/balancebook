@@ -21,6 +21,8 @@ module BalanceBook
 	  Help.new('new', ['create'], 'Create a new transfer.', {
 		     'from' => 'ID or Name of the source account',
 		     'to' => 'ID or Name of the destination account',
+		     'sent' => 'Amount sent',
+		     'received' => 'Amount received',
 		     'from_tx' => 'ID of transaction from the source account',
 		     'to_tx' => 'ID of transaction from the destination account',
 		     'note' => 'Optional note',
@@ -103,7 +105,7 @@ module BalanceBook
 	xfer.to_tx = extract_arg(:to_tx, 'To Transaction', args, hargs, choices)
 	unless choices.include?(xfer.to_tx)
 	  if Model::Account::CASH == to.kind && (xfer.to_tx.nil? || 0 == xfer.to_tx.size)
-	    tx = to.make_cash_trans(xfer.date, sent, 'transfer')
+	    tx = to.make_cash_trans(xfer.date, received, 'transfer')
 	    xfer.to_tx = tx.id
 	    puts "Transaction #{to.name}:#{tx.id} (#{tx.amount})."
 	  else

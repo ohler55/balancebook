@@ -11,7 +11,7 @@ module BalanceBook
       attr_accessor :date
       attr_accessor :amount
       attr_accessor :who
-      attr_accessor :ledger_tx # a list to support split ledger entries
+      attr_accessor :ledger_tx # a list to support split ledger entries, 0 is bank error
       attr_accessor :_account
       attr_accessor :_ledger_date
 
@@ -32,7 +32,7 @@ module BalanceBook
 	      @_ledger_date = Date.parse(lx.date)
 	      break
 	    }
-	  else
+	  elsif 0 != @ledger_tx
 	    lx = book.company.find_entry(@ledger_tx)
 	    raise StandardError.new("Ledger transaction #{@ledger_tx} not found.") if lx.nil?
 	      @_ledger_date = Date.parse(lx.date)
@@ -48,7 +48,7 @@ module BalanceBook
 	    @ledger_tx.each { |tx|
 	      raise StandardError.new("Ledger transaction #{tx} not found.") if book.company.find_entry(tx).nil?
 	    }
-	  else
+	  elsif 0 != @ledger_tx
 	    raise StandardError.new("Ledger transaction #{@ledger_tx} not found.") if book.company.find_entry(@ledger_tx).nil?
 	  end
 	end
