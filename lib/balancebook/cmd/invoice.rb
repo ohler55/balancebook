@@ -13,7 +13,7 @@ module BalanceBook
 	  Help.new('delete', ['del', 'rm'], 'Delete a invoice', {'id' => 'ID of the invoice to delete.'}),
 	  Help.new('list', nil, 'List all invoices.', {
 		     'paid' => 'Only display paid if true, only unpaid if false',
-		     'cust' => 'Only show invoices for specified customer',
+		     'cust' => 'Only show invoices for specified corporation',
 		     'period' => 'Period to display e.g., 2019q3, 2019',
 		     'first' => 'First date to display',
 		     'last' => 'Last date to display',
@@ -21,7 +21,7 @@ module BalanceBook
 	  Help.new('new', ['create'], 'Create a new invoice.', {
 		     'id' => 'ID of the invoice',
 		     'submitted' => 'Date the invoice was submitted',
-		     'to' => 'Customer the invoice was submitted to',
+		     'to' => 'Corporation the invoice was submitted to',
 		     'amount' => 'Total amount of the invoice',
 		     'currency' => 'Currency the invoice amount is in',
 		     'tax' => 'Tax that was applied, e.g, HST',
@@ -78,8 +78,9 @@ module BalanceBook
 	end
 	unless inv.payments.nil?
 	  puts "Payments:"
-	  inv.payments.each { |p|
-	    puts "  #{cur.symbol}#{p.amount} on #{p.date}"
+	  inv.payments.each { |lid|
+	    lx = book.company.find_entry(lid)
+	    puts "  #{cur.symbol}#{lx.amount} on #{lx.date}"
 	  }
 	end
 	puts
@@ -93,13 +94,14 @@ module BalanceBook
 			  Col.new('Cur', 3, :currency, nil),
 			  Col.new('Submitted', -10, :submitted, nil),
 			  Col.new('Paid On', -10, :paid, nil),
+			  Col.new('Penalty', -10, :penalty, '%.2f'),
 			  ])
 
 	period = extract_period(book, hargs)
 
 	paid = hargs[:paid]
 	paid = paid.downcase == "true" unless paid.nil?
-	cust = hargs[:cust] || hargs[:customer]
+	cust = hargs[:cust] || hargs[:corporation]
 
 	book.company.invoices.each { |inv|
 	  date = Date.parse(inv.submitted)
@@ -121,7 +123,7 @@ module BalanceBook
 	model = Model::Invoice.new
 	model.id = extract_arg(:id, 'ID', args, hargs)
 	model.submitted = extract_date(:submitted, 'Submitted', args, hargs)
-	model.to = extract_arg(:to, 'To', args, hargs, c.customers.map { |c| c.id })
+	model.to = extract_arg(:to, 'To', args, hargs, c.corporations.map { |c| c.id })
 	model.amount = extract_amount(:amount, 'Amount', args, hargs)
 	model.currency = extract_arg(:currency, "Currency", args, hargs, book.fx.currencies.map { |c| c.id } + [book.fx.base])
 	tax = extract_arg(:tax, 'Tax', args, hargs, c.taxes.map { |t| t.id })
@@ -153,6 +155,7 @@ module BalanceBook
       end
 
       def self.pay(book, args, hargs)
+	# TBD just link to existing ledger entry
 	c = book.company
 	puts "\nEnter Invoice payment information"
 	id = extract_arg(:id, "ID", args, hargs, c.invoices.select { |inv| !inv.paid_in_full }.map { |inv| inv.id })

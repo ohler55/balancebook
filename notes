@@ -9,8 +9,6 @@ remember
 todo
 -----------
 
-- allow multiple bank tx on a ledger entry
-
 - fx loss for cash accounts is when expense occurred vs when paid back
  - balance should use rate from day of expenses
   - maybe show both rate by day and rate of today

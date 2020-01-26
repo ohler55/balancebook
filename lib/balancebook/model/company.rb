@@ -6,8 +6,9 @@ module BalanceBook
 
       attr_accessor :name
       attr_accessor :accounts
-      attr_accessor :customers
+      attr_accessor :corporations
       attr_accessor :invoices
+      attr_accessor :bills
       attr_accessor :ledger
       attr_accessor :taxes
       attr_accessor :contacts
@@ -21,7 +22,7 @@ module BalanceBook
       def prepare(book)
 	@_book = book
 	@accounts.each { |a| a.prepare(book, self) }
-	@customers.each { |c| c.prepare(book, self) }
+	@corporations.each { |c| c.prepare(book, self) }
 	@invoices.each { |inv| inv.prepare(book, self) }
 	@ledger.each { |e| e.prepare(book, self) }
 	@transfers.each { |t| t.prepare(book, self) }
@@ -43,9 +44,9 @@ module BalanceBook
 	    dups[a.id] = a
 	  }
 	end
-	unless @customers.nil?
+	unless @corporations.nil?
 	  dups = {}
-	  @customers.each { |c|
+	  @corporations.each { |c|
 	    c.validate(book)
 	    raise StandardError.new("Duplicate customer #{c.id}.") unless dups[c.id].nil?
 	    dups[c.id] = c
@@ -113,8 +114,8 @@ module BalanceBook
 
       def add_customer(cust)
 	raise StandardError.new("Duplicate customer #{cust.name}.") unless find_customer(cust.name).nil?
-	@customers << cust
-	@customers.sort_by! { |c| c.name }
+	@corporations << cust
+	@corporations.sort_by! { |c| c.name }
       end
 
       def add_tax(book, tax)
@@ -228,9 +229,9 @@ module BalanceBook
 	nil
       end
 
-      def find_customer(id)
+      def find_corporation(id)
 	id = id.downcase
-	@customers.each { |c|
+	@corporations.each { |c|
 	  return c if id == c.id.downcase || id == c.name.downcase
 	}
 	nil

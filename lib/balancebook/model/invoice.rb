@@ -13,16 +13,19 @@ module BalanceBook
       attr_accessor :taxes # TaxAmount array
       attr_accessor :currency
       attr_accessor :po
+      attr_accessor :_book
+      attr_accessor :_company
 
       def prepare(book, company)
-	# TBD currency, submitted, payments(date & account)
+	@_book = book
+	@_company = company
       end
 
       def validate(book)
 	raise StandardError.new("Invoice ID can not be empty.") unless !@id.nil? && 0 < @id.size
 	raise StandardError.new("Invoice amount of #{@amount} must be greater than 0.0.") unless 0.0 < @amount
 	validate_date('Invoice submitted date', @submitted)
-	cust = book.company.find_customer(@to)
+	cust = book.company.find_corporation(@to)
 	raise StandardError.new("Customer #{@to} for invoice #{@id} not found.") if cust.nil?
 	@to = cust.id
 	raise StandardError.new("Invoice #{@id} over paid #{@amount} < #{paid_amount}.") if @amount < paid_amount
@@ -51,28 +54,27 @@ module BalanceBook
       # Most recent payment.
       def paid_date
 	recent = nil
-	@payments.each { |p|
-	  next if p.amount.nil?
-	  pd = Date.parse(p.date)
+	@payments.each { |lid|
+	  lx = @_company.find_entry(lid)
+	  pd = Date.parse(lx.date)
 	  recent = pd if recent.nil? || recent < pd
 	}
+	recent
       rescue Exception => e
 	nil
       end
 
       def paid
-	return nil if @payments.nil?
-	pd = nil
-	pt = nil
-	@payments.each { |p|
-	  next if p.date.nil?
-	  t = Date.parse(p.date).to_time.to_i
-	  if pt.nil? || pt < t
-	    pt = t
-	    pd = p.date
-	  end
+	recent = nil
+	sum = 0.0
+	@payments.each { |lid|
+	  lx = @_company.find_entry(lid)
+	  pd = Date.parse(lx.date)
+	  recent = pd if recent.nil? || recent < pd
+	  sum += lx.amount
 	}
-	pd
+	recent = nil unless @amount == sum
+	recent
       end
 
       def paid_in_full
@@ -82,9 +84,9 @@ module BalanceBook
       def paid_amount
 	return 0.0 if @payments.nil?
 	sum = 0.0
-	@payments.each { |p|
-	  next if p.amount.nil?
-	  sum += p.amount
+	@payments.each { |lid|
+	  lx = @_company.find_entry(lid)
+	  sum += lx.amount
 	}
 	sum
       end
@@ -93,24 +95,35 @@ module BalanceBook
 	return 0.0 if @payments.nil?
 	sum = 0.0
 	@payments.each { |p|
-	  next if p.amount.nil?
-	  pd = Date.parse(p.date)
-	  sum += p.amount if pd <= date
+	  lx = @_company.find_entry(lid)
+	  pd = Date.parse(lx.date)
+	  sum += lx.amount if pd <= date
 	}
 	sum
       end
 
       def days_to_paid
-	return nil if @payments.nil?
 	t0 = submit_date.to_time.to_i
 	pt = Date.parse(paid).to_time.to_i
 	return nil if pt.nil?
 	((pt - t0) / 86400).to_i
       end
 
-      def pay(payment)
+      def pay(lx)
 	@payments = [] if @payments.nil?
-	@payments << payment
+	@payments << lx
+      end
+
+      def penalty(as_of=nil)
+	return if paid_in_full
+	t0 = submit_date.to_time.to_i
+	as_of = Date.today if as_of.nil?
+	t1 = as_of.to_time.to_i
+	days = ((t1 - t0) / 86400).to_i
+	return nil if days <= 45
+
+	day_rate = 0.015 * 12 / 365 # 1.5% per month
+	day_rate * days * @amount
       end
 
     end
