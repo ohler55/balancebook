@@ -23,6 +23,7 @@ module BalanceBook
 	@_book = book
 	@accounts.each { |a| a.prepare(book, self) }
 	@corporations.each { |c| c.prepare(book, self) }
+	@bills.each { |bill| bill.prepare(book, self) }
 	@invoices.each { |inv| inv.prepare(book, self) }
 	@ledger.each { |e| e.prepare(book, self) }
 	@transfers.each { |t| t.prepare(book, self) }
@@ -106,15 +107,23 @@ module BalanceBook
 	@invoices.sort! { |a,b| b.submitted <=> a.submitted }
       end
 
+      def add_bill(book, bill)
+	raise StandardError.new("Duplicate bill #{bill.from} - #{bill.id}.") unless find_bill(bill.from, bill.id).nil?
+	bill.validate(book)
+	@bills = [] if @bills.nil?
+	@bills << bill
+	@bills.sort! { |a,b| b.received <=> a.received }
+      end
+
       def add_category(book, cat)
 	raise StandardError.new("Duplicate category #{cat.name}.") unless find_category(cat.name).nil?
 	@categories << cat
 	@categories.sort_by! { |cat| cat.name }
       end
 
-      def add_customer(cust)
-	raise StandardError.new("Duplicate customer #{cust.name}.") unless find_customer(cust.name).nil?
-	@corporations << cust
+      def add_corporation(corp)
+	raise StandardError.new("Duplicate corporation #{corp.name}.") unless find_corporation(corp.name).nil?
+	@corporations << corp
 	@corporations.sort_by! { |c| c.name }
       end
 
@@ -201,6 +210,15 @@ module BalanceBook
 	id = id.downcase
 	@categories.each { |cat|
 	  return cat if id == cat.name.downcase
+	}
+	nil
+      end
+
+      def find_bill(from, id)
+	return nil if @bills.nil?
+	id = id.downcase
+	@bills.each { |bill|
+	  return bill if from == bill.from && id == bill.id.downcase
 	}
 	nil
       end

@@ -7,6 +7,7 @@ end
 
 require 'balancebook/model/base'
 require 'balancebook/model/account'
+require 'balancebook/model/bill'
 require 'balancebook/model/category'
 require 'balancebook/model/company'
 require 'balancebook/model/contact'

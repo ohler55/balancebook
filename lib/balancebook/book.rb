@@ -39,10 +39,11 @@ module BalanceBook
       puts 'Commands:'
       [
 	Cmd::Help.new('account', ['acct'], 'Account commands', nil),
+	Cmd::Help.new('bill', nil, 'Bill commands', nil),
 	Cmd::Help.new('category', ['cat'], 'Category commands', nil),
 	Cmd::Help.new('company', nil, 'Company commands', nil),
 	Cmd::Help.new('contact', nil, 'Contact commands', nil),
-	Cmd::Help.new('Customer', nil, 'Customer commands', nil),
+	Cmd::Help.new('corporation', nil, 'Corporation commands', nil),
 	Cmd::Help.new('date-diff', ['date-diffs'], 'Date difference report', nil),
 	Cmd::Help.new('fx', nil, 'FX commands', nil),
 	Cmd::Help.new('invoice', nil, 'Invoice commands', nil),
@@ -66,14 +67,16 @@ module BalanceBook
 	help
       when 'account', 'acct', 'bank'
 	Cmd::Account.cmd(self, args[1..-1], hargs)
+      when 'bill'
+	Cmd::Bill.cmd(self, args[1..-1], hargs)
       when 'category', 'cat'
 	Cmd::Category.cmd(self, args[1..-1], hargs)
       when 'company'
 	# TBD
       when 'contact'
 	# TBD
-      when 'customer'
-	Cmd::Customer.cmd(self, args[1..-1], hargs)
+      when 'corporation', 'corp'
+	Cmd::Corporation.cmd(self, args[1..-1], hargs)
       when 'fx'
 	Cmd::Fx.cmd(self, args[1..-1], hargs)
       when 'invoice'

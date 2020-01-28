@@ -5,29 +5,29 @@ require 'date'
 module BalanceBook
   module Cmd
 
-    class Invoice
+    class Bill
       extend Base
 
       def self.help_cmds
 	[
-	  Help.new('delete', ['del', 'rm'], 'Delete a invoice', {'id' => 'ID of the invoice to delete.'}),
-	  Help.new('list', nil, 'List all invoices.', {
+	  Help.new('delete', ['del', 'rm'], 'Delete a bill', {'id' => 'ID of the bill to delete.'}),
+	  Help.new('list', nil, 'List all bills.', {
 		     'paid' => 'Only display paid if true, only unpaid if false',
-		     'cust' => 'Only show invoices for specified corporation',
+		     'from' => 'Only show bills for specified corporation',
 		     'period' => 'Period to display e.g., 2019q3, 2019',
 		     'first' => 'First date to display',
 		     'last' => 'Last date to display',
 		   }),
-	  Help.new('new', ['create'], 'Create a new invoice.', {
-		     'id' => 'ID of the invoice',
-		     'submitted' => 'Date the invoice was submitted',
-		     'to' => 'Corporation the invoice was submitted to',
-		     'amount' => 'Total amount of the invoice',
-		     'currency' => 'Currency the invoice amount is in',
+	  Help.new('new', ['create'], 'Create a new bill.', {
+		     'id' => 'ID of the bill',
+		     'received' => 'Date the bill was received',
+		     'from' => 'Corporation the bill was received from',
+		     'amount' => 'Total amount of the bill',
+		     'currency' => 'Currency the bill amount is in',
 		     'tax' => 'Tax that was applied, e.g, HST',
 		   }),
-	  Help.new('pay', nil, 'Pay an invoice.', nil),
-	  Help.new('show', ['details'], 'Show invoice details.', {'id' => 'ID of the invoice to display'}),
+	  Help.new('pay', nil, 'Pay an bill.', nil),
+	  Help.new('show', ['details'], 'Show bill details.', {'id' => 'ID of the bill to display'}),
 	]
       end
 
@@ -48,7 +48,7 @@ module BalanceBook
 	when 'show'
 	  show(book, args[1..-1], hargs)
 	else
-	  raise StandardError.new("Invoice can not #{verb}.")
+	  raise StandardError.new("Bill can not #{verb}.")
 	end
       end
 
@@ -59,70 +59,74 @@ module BalanceBook
 
       def self.show(book, args, hargs)
 	c = book.company
-	id = extract_arg(:id, "ID", args, hargs, c.invoices.map { |inv| inv.id })
-	inv = c.find_invoice(id)
-	raise StandardError.new("Failed to find invoice #{id}.") if inv.nil?
-	cur = book.fx.find_currency(inv.currency)
+	from = extract_arg(:from, "From", args, hargs, c.bills.map { |bill| bill.from })
 
-	puts "\nID: #{inv.id}"
-	puts "To: #{inv.to}"
-	puts "Submitted: #{inv.submitted}"
-	puts "Amount: #{cur.symbol}#{inv.amount}"
-	puts "Currency: #{inv.currency}"
-	unless inv.taxes.nil?
+	id = extract_arg(:id, "ID", args, hargs, c.bills.select { |bill| bill.from == from }.map { |bill| bill.id })
+	bill = c.find_bill(from, id)
+	raise StandardError.new("Failed to find bill #{id}.") if bill.nil?
+	cur = book.fx.find_currency(bill.currency)
+
+	puts "\nFrom: #{bill.from}"
+	puts "ID: #{bill.id}"
+	puts "File: #{bill.file}"
+	puts "Received: #{bill.received}"
+	puts "Amount: #{cur.symbol}#{bill.amount}"
+	puts "Currency: #{bill.currency}"
+	unless bill.taxes.nil?
 	  puts "Taxes:"
-	  inv.taxes.each { |ta|
+	  bill.taxes.each { |ta|
 	    puts "  #{ta.tax}: #{cur.symbol}#{ta.amount}"
 	  }
 	end
-	unless inv.payments.nil?
+	unless bill.payments.nil?
 	  puts "Payments:"
-	  inv.payments.each { |lid|
+	  bill.payments.each { |lid|
 	    lx = book.company.find_entry(lid)
-	    puts "  #{cur.symbol}#{lx.amount} on #{lx.date}"
+	    puts "  #{cur.symbol}#{-lx.amount} on #{lx.date}"
 	  }
 	end
 	puts
       end
 
       def self.list(book, args, hargs)
-	table = Table.new('Invoices', [
-			  Col.new('ID', -16, :id, nil),
-			  Col.new('To', -16, :to, nil),
+	table = Table.new('Bills', [
+			  Col.new('From', -16, :from, nil),
+			  Col.new('ID', -20, :id, nil),
 			  Col.new('Amount', 10, :amount, '%.2f'),
 			  Col.new('Cur', 3, :currency, nil),
-			  Col.new('Submitted', -10, :submitted, nil),
+			  Col.new('Received', -10, :received, nil),
 			  Col.new('Paid On', -10, :paid, nil),
-			  Col.new('Penalty', -10, :penalty, '%.2f'),
 			  ])
 
 	period = extract_period(book, hargs)
 
 	paid = hargs[:paid]
 	paid = paid.downcase == "true" unless paid.nil?
-	cust = hargs[:cust] || hargs[:corporation]
+	from = hargs[:from] || hargs[:corporation]
 
-	book.company.invoices.each { |inv|
-	  date = Date.parse(inv.submitted)
-	  next unless period.in_range(date)
-	  unless paid.nil?
-	    ip = inv.paid
-	    next if paid && ip.nil?
-	    next if !paid && !ip.nil?
-	  end
-	  next if !cust.nil? && cust != inv.to
-	  table.add_row(inv)
-	}
+	unless book.company.bills.nil?
+	  book.company.bills.each { |bill|
+	    date = Date.parse(bill.received)
+	    next unless period.in_range(date)
+	    unless paid.nil?
+	      ip = bill.paid
+	      next if paid && ip.nil?
+	      next if !paid && !ip.nil?
+	    end
+	    next if !from.nil? && from != bill.from
+	    table.add_row(bill)
+	  }
+	end
 	table.display
       end
 
       def self.create(book, args, hargs)
 	c = book.company
-	puts "\nEnter information for a new Invoice"
-	model = Model::Invoice.new
+	puts "\nEnter information for a new Bill"
+	model = Model::Bill.new
+	model.from = extract_arg(:from, 'From', args, hargs, c.corporations.map { |c| c.id })
 	model.id = extract_arg(:id, 'ID', args, hargs)
-	model.submitted = extract_date(:submitted, 'Submitted', args, hargs)
-	model.to = extract_arg(:to, 'To', args, hargs, c.corporations.map { |c| c.id })
+	model.received = extract_date(:recevied, 'Received', args, hargs)
 	model.amount = extract_amount(:amount, 'Amount', args, hargs)
 	model.currency = extract_arg(:currency, "Currency", args, hargs, book.fx.currencies.map { |c| c.id } + [book.fx.base])
 	tax = extract_arg(:tax, 'Tax', args, hargs, c.taxes.map { |t| t.id })
@@ -132,7 +136,7 @@ module BalanceBook
 	  model.taxes = ta
 	end
 	model.validate(book)
-	book.company.add_invoice(book, model)
+	book.company.add_bill(book, model)
 	puts "\n#{model.class.to_s.split('::')[-1]} #{model.id} added.\n\n"
 	book.company.dirty
       end
@@ -158,35 +162,32 @@ module BalanceBook
 	partial = partial.downcase == "true" unless partial.nil?
 
 	c = book.company
-	puts "\nEnter Invoice payment information"
-	id = extract_arg(:id, "ID", args, hargs, c.invoices.select { |inv| !inv.paid_in_full }.map { |inv| inv.id })
-	inv = c.find_invoice(id)
-	raise StandardError.new("Failed to find invoice #{id}.") if inv.nil?
-
-	if inv.paid_in_full
-	  puts "\nInvoice #{inv.id} already paid in full.\n\n"
-	  return
-	end
+	puts "\nEnter Bill payment information"
+	from = extract_arg(:from, "From", args, hargs, c.bills.select { |bill| !bill.paid_in_full }.map { |bill| bill.from })
+	id = extract_arg(:id, "ID", args, hargs,
+			 c.bills.select { |bill| bill.from == from && !bill.paid_in_full }.map { |bill| bill.id })
+	bill = c.find_bill(from, id)
+	raise StandardError.new("Failed to find bill #{from} - #{id}.") if bill.nil?
 
 	if partial
 	  candidates = c.ledger.select { |lx|
-	    lx.amount <= inv.amount && inv.submitted <= lx.date && lx.category == 'Invoice Payment' && !a_payment?(c, lx)
+	    -lx.amount <= bill.amount && bill.received <= lx.date && lx.category == 'Bill Payment' && !a_payment?(c, lx)
 	  }.map { |lx| lx.id.to_s }
 	else
-	  candidates = c.ledger.select { |lx| lx.amount == inv.amount && inv.submitted <= lx.date}.map { |lx| lx.id.to_s }
+	  candidates = c.ledger.select { |lx| -lx.amount == bill.amount && bill.received <= lx.date}.map { |lx| lx.id.to_s }
 	end
 	lid = extract_arg(:lid, "Ledger Entry ID", args, hargs, candidates).to_i
 	lx = c.find_entry(lid)
 	raise StandardError.new("Failed to find ledger entry #{lid}.") unless candidates.include?(lid.to_s)
-	raise StandardError.new("Invoice payments already includes ledger entry #{lid}.") if inv.payments.include?(lid)
-	inv.pay(lid)
+	raise StandardError.new("Bill payments already includes ledger entry #{lid}.") if bill.payments.include?(lid)
+	bill.pay(lid)
 
-	puts "\nPayment of #{lx.amount} to #{id} made.\n\n"
+	puts "\nPayment of #{bill.amount} on #{id} from #{bill.from}.\n\n"
 	book.company.dirty
       end
 
       def self.a_payment?(c, lx)
-	c.invoices.each { |inv| return true if !inv.payments.nil? &&inv.payments.include?(lx.id) }
+	c.bills.each { |bill| return true if !bill.payments.nil? &&bill.payments.include?(lx.id) }
 	false
       end
 
