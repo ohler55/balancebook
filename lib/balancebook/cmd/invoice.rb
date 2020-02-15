@@ -8,15 +8,49 @@ module BalanceBook
     class Invoice
       extend Base
 
+      attr_accessor :id
+      attr_accessor :to
+      attr_accessor :amount
+      attr_accessor :base_amount
+      attr_accessor :off_amount
+      attr_accessor :currency
+      attr_accessor :submitted
+      attr_accessor :paid_on
+      attr_accessor :paid
+      attr_accessor :penalty
+      attr_accessor :late
+      attr_accessor :is_penalty
+
+      def initialize(inv, as_of)
+	unless inv.nil?
+	  @id = inv.id
+	  @to = inv.to
+	  @amount = inv.amount
+	  @base_amount = inv.amount - inv.tax
+	  @off_amount = inv.amount - (inv.tax * 0.83)
+	  @currency = inv.currency
+	  @submitted = inv.submitted
+	  @paid_on = inv.paid
+	  @paid = inv.paid_amount
+	  @penalty = inv.penalty(as_of)
+	  @late = inv.days_late(as_of)
+	  @is_penalty = inv.tax <= 0.0 ? '*' : ' '
+	end
+      end
+
       def self.help_cmds
 	[
 	  Help.new('delete', ['del', 'rm'], 'Delete a invoice', {'id' => 'ID of the invoice to delete.'}),
 	  Help.new('list', nil, 'List all invoices.', {
 		     'paid' => 'Only display paid if true, only unpaid if false',
 		     'cust' => 'Only show invoices for specified corporation',
+		     'po' => 'Only show invoices for specified PO',
 		     'period' => 'Period to display e.g., 2019q3, 2019',
 		     'first' => 'First date to display',
 		     'last' => 'Last date to display',
+		     'csv' => 'Display output as CSV',
+		     'tsv' => 'Display output as TSV',
+		     'reverse' => 'Reverse the order of the entries',
 		   }),
 	  Help.new('new', ['create'], 'Create a new invoice.', {
 		     'id' => 'ID of the invoice',
@@ -26,7 +60,10 @@ module BalanceBook
 		     'currency' => 'Currency the invoice amount is in',
 		     'tax' => 'Tax that was applied, e.g, HST',
 		   }),
-	  Help.new('pay', nil, 'Pay an invoice.', nil),
+	  Help.new('pay', nil, 'Pay an invoice.', {
+		     'id' => 'ID of the invoice',
+		     'lid' => 'Ledger Entry ID of the payment',
+		   }),
 	  Help.new('show', ['details'], 'Show invoice details.', {'id' => 'ID of the invoice to display'}),
 	]
       end
@@ -86,21 +123,48 @@ module BalanceBook
       end
 
       def self.list(book, args, hargs)
-	table = Table.new('Invoices', [
-			  Col.new('ID', -16, :id, nil),
-			  Col.new('To', -16, :to, nil),
-			  Col.new('Amount', 10, :amount, '%.2f'),
-			  Col.new('Cur', 3, :currency, nil),
-			  Col.new('Submitted', -10, :submitted, nil),
-			  Col.new('Paid On', -10, :paid, nil),
-			  Col.new('Penalty', -10, :penalty, '%.2f'),
-			  ])
-
+	as_of = nil
+	if hargs.has_key?(:as_of)
+	  as_of = extract_date(:as_of, 'As Of', args, hargs)
+	  as_of = Date.parse(as_of) unless as_of.nil?
+	end
 	period = extract_period(book, hargs)
-
+	show_period = hargs.has_key?(:period) || hargs.has_key?(:first) || hargs.has_key?(:last)
 	paid = hargs[:paid]
 	paid = paid.downcase == "true" unless paid.nil?
 	cust = hargs[:cust] || hargs[:corporation]
+	po = hargs[:po]
+	tsv = hargs.has_key?(:tsv)
+	csv = hargs.has_key?(:csv)
+	rev = hargs.has_key?(:reverse)
+
+	cols = [
+	  Col.new('ID', -16, :id, nil),
+	  Col.new('P', 1, :is_penalty, nil),
+	  Col.new('To', -16, :to, nil),
+	  Col.new('Amount', 10, :amount, '%.2f'),
+	  Col.new('Pre Tax', 10, :base_amount, '%.2f'),
+	  Col.new('83% Off', 10, :off_amount, '%.2f'),
+	  Col.new('Cur', 3, :currency, nil),
+	  Col.new('Submitted', -10, :submitted, nil),
+	  Col.new('Paid On', -10, :paid_on, nil),
+	  Col.new('Paid', -10, :paid, '%.2f'),
+	]
+	unless as_of.nil?
+	  cols << Col.new('Penalty', -10, :penalty, '%.2f')
+	  cols << Col.new('Late', -5, :late, '%d')
+	end
+	title = 'Invoices'
+	title += " for #{cust}" unless cust.nil?
+	title += " PO #{po}" unless po.nil?
+	title += " between #{period.first} and #{period.last}" if show_period
+
+	table = Table.new(title, cols)
+	total = 0.0
+	tax = 0.0
+	penalty = 0.0
+	paid_total = 0.0
+	paid_penalty = 0.0
 
 	book.company.invoices.each { |inv|
 	  date = Date.parse(inv.submitted)
@@ -111,9 +175,42 @@ module BalanceBook
 	    next if !paid && !ip.nil?
 	  end
 	  next if !cust.nil? && cust != inv.to
-	  table.add_row(inv)
+	  next if !po.nil? && po != inv.po
+	  table.add_row(new(inv, as_of))
+	  total += inv.amount
+	  tax += inv.tax
+	  if inv.tax <= 0.0  # TBD better approach needed
+	    penalty += inv.amount
+	    paid_penalty += inv.paid_amount
+	  end
+	  paid_total += inv.paid_amount
 	}
-	table.display
+	table.rows.reverse! unless rev
+	table.add_row(new(nil, nil))
+
+	row = new(nil, nil)
+	row.id = 'Total'
+	row.amount = total
+	row.base_amount = total - tax
+	row.off_amount = total - (tax * 0.83)
+	row.paid = paid_total
+	table.add_row(row)
+
+	row = new(nil, nil)
+	row.id = 'Exclude Penalty'
+	row.amount = total - penalty
+	row.base_amount = total - tax - penalty
+	row.off_amount = total - (tax * 0.83) - penalty
+	row.paid = paid_total - paid_penalty
+	table.add_row(row)
+
+	if tsv
+	  table.tsv
+	elsif csv
+	  table.csv
+	else
+	  table.display
+	end
       end
 
       def self.create(book, args, hargs)

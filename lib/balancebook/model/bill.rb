@@ -96,7 +96,7 @@ module BalanceBook
 	return 0.0 if @payments.nil?
 	sum = 0.0
 	@payments.each { |p|
-	  lx = @_company.find_entry(lid)
+	  lx = @_company.find_entry(p)
 	  pd = Date.parse(lx.date)
 	  sum -= lx.amount if pd <= date
 	}

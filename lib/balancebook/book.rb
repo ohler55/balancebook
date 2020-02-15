@@ -85,7 +85,7 @@ module BalanceBook
 	Cmd::Ledger.cmd(self, args[1..-1], hargs)
       when 'link', 'links'
 	Cmd::Links.cmd(self, args[1..-1], hargs)
-      when 'reports' #, 'report'
+      when 'reports', 'report'
 	Cmd::Report.cmd(self, args[1..-1], hargs)
       when 'tax', 'taxes'
 	Cmd::Tax.cmd(self, args[1..-1], hargs)

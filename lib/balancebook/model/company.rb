@@ -104,7 +104,10 @@ module BalanceBook
 	raise StandardError.new("Duplicate invoice #{inv.id}.") unless find_invoice(inv.id).nil?
 	inv.validate(book)
 	@invoices << inv
-	@invoices.sort! { |a,b| b.submitted <=> a.submitted }
+	@invoices.sort! { |a,b|
+	  b.id <=> a.id if b.submitted == a.submitted
+	  b.submitted <=> a.submitted
+	}
       end
 
       def add_bill(book, bill)

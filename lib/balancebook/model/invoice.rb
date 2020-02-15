@@ -9,6 +9,7 @@ module BalanceBook
       attr_accessor :submitted
       attr_accessor :amount
       attr_accessor :to
+      attr_accessor :po
       attr_accessor :payments
       attr_accessor :taxes # TaxAmount array
       attr_accessor :currency
@@ -18,6 +19,7 @@ module BalanceBook
       def prepare(book, company)
 	@_book = book
 	@_company = company
+	@payments = [] if @payments.nil?
       end
 
       def validate(book)
@@ -94,7 +96,7 @@ module BalanceBook
 	return 0.0 if @payments.nil?
 	sum = 0.0
 	@payments.each { |p|
-	  lx = @_company.find_entry(lid)
+	  lx = @_company.find_entry(p)
 	  pd = Date.parse(lx.date)
 	  sum += lx.amount if pd <= date
 	}
@@ -113,13 +115,19 @@ module BalanceBook
 	@payments << lx
       end
 
-      def penalty(as_of=nil)
-	return if paid_in_full
+      def days_late(as_of=nil)
+	return nil if paid_in_full
 	t0 = submit_date.to_time.to_i
 	as_of = Date.today if as_of.nil?
 	t1 = as_of.to_time.to_i
 	days = ((t1 - t0) / 86400).to_i
 	return nil if days <= 45
+	days
+      end
+
+      def penalty(as_of=nil)
+	days = days_late(as_of)
+	return nil if days.nil?
 
 	day_rate = 0.015 * 12 / 365 # 1.5% per month
 	day_rate * days * @amount

@@ -34,6 +34,10 @@ module BalanceBook
 	sum.round(2)
       end
 
+      def currency
+	return @_account.currency
+      end
+
       def amount_in_currency(book, base_cur)
 	acct = book.company.find_account(@account)
 	raise StandardError.new("Account #{@account} not found.") if acct.nil?

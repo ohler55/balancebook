@@ -19,15 +19,22 @@ module BalanceBook
 		     'last' => 'Last date to display',
 		   }),
 	  Help.new('new', ['create'], 'Create a new bill.', {
+		     'from' => 'Corporation the bill was received from',
 		     'id' => 'ID of the bill',
 		     'received' => 'Date the bill was received',
-		     'from' => 'Corporation the bill was received from',
 		     'amount' => 'Total amount of the bill',
 		     'currency' => 'Currency the bill amount is in',
 		     'tax' => 'Tax that was applied, e.g, HST',
 		   }),
-	  Help.new('pay', nil, 'Pay an bill.', nil),
-	  Help.new('show', ['details'], 'Show bill details.', {'id' => 'ID of the bill to display'}),
+	  Help.new('pay', nil, 'Pay an bill.', {
+		     'from' => 'Corporation the bill was received from',
+		     'id' => 'ID of the bill',
+		     'lid' => 'Ledger Entry ID of payment',
+		   }),
+	  Help.new('show', ['details'], 'Show bill details.', {
+		     'from' => 'Corporation the bill was received from',
+		     'id' => 'ID of the bill to display',
+		   }),
 	]
       end
 
@@ -179,7 +186,7 @@ module BalanceBook
 	lid = extract_arg(:lid, "Ledger Entry ID", args, hargs, candidates).to_i
 	lx = c.find_entry(lid)
 	raise StandardError.new("Failed to find ledger entry #{lid}.") unless candidates.include?(lid.to_s)
-	raise StandardError.new("Bill payments already includes ledger entry #{lid}.") if bill.payments.include?(lid)
+	raise StandardError.new("Bill payments already includes ledger entry #{lid}.") if !bill.payments.nil? && bill.payments.include?(lid)
 	bill.pay(lid)
 
 	puts "\nPayment of #{bill.amount} on #{id} from #{bill.from}.\n\n"

@@ -9,6 +9,55 @@ remember
 todo
 -----------
 
+- help for reports
+- what to do about FX-Loss
+ - already reflected in account
+  - just used for tracking, no need for account maybe
+
+- Bills
+ - use for Liabilities in balance report
+ - add 2019q4 HST along with payments
+
+ - add as cmd as well
+
+- income statement
+
+  Revenue
+   UHN                     $
+   Total                   $
+
+  Expenses
+    Per Diem    $
+   Total        $
+
+  Net Income    $
+
+- use () for negative (maybe an option)
+
+- balance sheet as of date
+
+  Assets
+    cash                amount currency  USD(base)
+    accounts
+    total
+
+    accounts receivable
+
+  Liabilities
+    expenses
+    total
+
+  Owner Equity
+    CAD
+    USD
+
+ or side by side
+
+  Assets           Liabilities
+                   Equity
+  - totals on each should match
+
+
 - fx loss for cash accounts is when expense occurred vs when paid back
  - balance should use rate from day of expenses
   - maybe show both rate by day and rate of today

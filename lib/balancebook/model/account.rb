@@ -53,6 +53,12 @@ module BalanceBook
 	end
       end
 
+      def <=>(other)
+	return @name <=> other.name if @kind == other.kind
+	return 1 if CASH == @kind
+	return -1
+      end
+
       def add_trans(t)
 	x = find_trans(t.id)
 	return false unless x.nil?
@@ -124,10 +130,14 @@ module BalanceBook
 	t
       end
 
-      def balance
+      def balance(as_of=nil)
 	total = 0.0
-	@transactions.each { |t| total += t.amount }
-	total
+	@transactions.each { |t|
+	  d = Date.parse(t.date)
+	  next if !as_of.nil? && as_of < d
+	  total += t.amount
+	}
+	total.round(2)
       end
 
       def amount_in_currency(book, amount, base_cur, date)
