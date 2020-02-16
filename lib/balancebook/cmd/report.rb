@@ -1,10 +1,4 @@
-# coding: utf-8
 # Copyright (c) 2019, Peter Ohler, All rights reserved.
-
-require 'date'
-require 'csv'
-
-require 'ox'
 
 require 'balancebook/cmd/report_hst'
 require 'balancebook/cmd/report_income'
@@ -17,32 +11,9 @@ module BalanceBook
       extend Base
 
       def self.help_cmds
-	[
-	  Help.new('hst', nil, 'HST paid and owed', {
-		     'period' => 'Period to match e.g., 2019q3, 2019',
-		     'first' => 'First date to match',
-		     'last' => 'Last date to match',
-		     'csv' => 'Display output as CSV',
-		     'tsv' => 'Display output as TSV',
-		     'reverse' => 'Reverse the order of the entries',
-		   }),
-	  Help.new('income', nil, 'income statement', {
-		     'period' => 'Period to match e.g., 2019q3, 2019',
-		     'first' => 'First date to match',
-		     'last' => 'Last date to match',
-		     'csv' => 'Display output as CSV',
-		     'tsv' => 'Display output as TSV',
-		     'parens' => 'Parenthesis for negative amounts'
-		   }),
-	  Help.new('balance', nil, 'balance sheet', {
-		     'period' => 'Period to match e.g., 2019q3, 2019',
-		     'first' => 'First date to match',
-		     'last' => 'Last date to match',
-		     'csv' => 'Display output as CSV',
-		     'tsv' => 'Display output as TSV',
-		     'parens' => 'Parenthesis for negative amounts'
-		   }),
-	]
+	ReportHST.help_cmds +
+	  ReportIncome.help_cmds +
+	  ReportBalance.help_cmds
       end
 
       def self.cmd(book, args, hargs)

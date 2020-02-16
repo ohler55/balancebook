@@ -36,12 +36,21 @@ module BalanceBook
       def to_s(obj, pad=true)
 	if obj.nil?
 	  s = @label
+	  s += ' ' if pad && :money == @format
 	else
 	  v = value(obj)
 	  if v.nil?
 	    s = ''
 	  elsif @format.nil? || v.is_a?(String)
 	    s = v.to_s
+	    s += ' ' if pad && :money == @format
+	  elsif :money == @format
+	    v = v.to_f.round(2)
+	    if v < 0.0 && pad
+	      s = '(%.2f)' % [-v]
+	    else
+	      s = '%.2f ' % [v]
+	    end
 	  else
 	    s = @format % [v]
 	  end

@@ -1,9 +1,6 @@
 # Copyright (c) 2019, Peter Ohler, All rights reserved.
 
 require 'date'
-require 'csv'
-
-require 'ox'
 
 require 'balancebook/cmd/report_base'
 
@@ -53,6 +50,19 @@ module BalanceBook
 
       def self.description
 	'Summary of HST for a period.'
+      end
+
+      def self.help_cmds
+	[
+	  Help.new('hst', nil, 'HST paid and owed', {
+		     'period' => 'Period to match e.g., 2019q3, 2019',
+		     'first' => 'First date to match',
+		     'last' => 'Last date to match',
+		     'csv' => 'Display output as CSV',
+		     'tsv' => 'Display output as TSV',
+		     'reverse' => 'Reverse the order of the entries',
+		   }),
+	]
       end
 
       def self.report(book, args, hargs)

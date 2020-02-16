@@ -6,6 +6,7 @@ module BalanceBook
     class Category
 
       attr_accessor :name
+      attr_accessor :expense
 
       def initialize(name)
 	@name = name
