@@ -18,7 +18,7 @@ require 'optparse'
 require 'oj'
 require 'balancebook'
 
-$verbose = false
+$verbose = true
 $backups = 1
 $data = nil
 $fx_file = nil
@@ -83,7 +83,7 @@ verbs:
   reports <report name> [<arg>[=<value>]]...
 
 })
-opts.on('-v', 'verbose')                                                  { $verbose = true }
+opts.on('-q', 'quiet')                                                    { $verbose = false }
 opts.on('-n', 'no save')                                                  { $save_ok = false }
 opts.on('-c', '--conf String', String, 'configuration file')              { |f| File.open(File.expand_path(f), 'r') { |f| process_conf(f) }}
 opts.on('-b', '--backups Integer', Integer, 'number of backups to keep')  { |n| $backups = n }
@@ -110,13 +110,7 @@ begin
   book.validate
 
   hargs = {}
-  if !book.act(args)
-    args[2..].each { |a|
-      k, v = a.split('=')
-      hargs[k.to_sym] = v
-    }
-    book.cmd(args[0], args[1], hargs)
-  end
+  book.act(args)
 rescue Exception => e
   puts "\n*-*-* #{e.class}: #{e.message}"
   e.backtrace.each { |line| puts "  #{line}" } if $verbose

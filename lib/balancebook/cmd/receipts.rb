@@ -30,43 +30,46 @@ module BalanceBook
 	# TBD get currency
       end
 
-      def self.report(book, args={})
-	period = extract_period(book, args)
-	miss = args.has_key?(:missing)
+      def self.help_cmds
+	[
+	  Help.new('update', nil, 'Update.', {
+		     'id' => 'Ledger entry ID',
+		     'file' => 'Receipt or related file',
+		   }),
+	]
+      end
 
-	table = Table.new("Ledger Entries (#{period.first} to #{period.last})", [
-			  Col.new('ID', 6, :id, '%d'),
-			  Col.new('Date', -10, :date, nil),
-			  Col.new('Category', -20, :category, nil),
-			  Col.new('Description', -40, :who, nil),
-			  Col.new('Amount', 10, :amount, '%.2f'),
-			  Col.new('Receipt', -60, :file, nil),
-			  ])
-	book.company.ledger.each { |e|
-	  date = Date.parse(e.date)
-	  next unless period.in_range(date)
-	  next if miss && !e.file.nil? && 0 < e.file.size
-	  table.add_row(new(e))
-	}
-	case args[:format] || args[:fmt]
-	when 'tsv'
-	  table.tsv
-	when 'csv'
-	  table.csv
+      def self.cmd(book, args, hargs)
+	verb = args[0]
+	verb = 'update' if verb.nil? || verb.include?('=')
+	case verb
+	when 'help', '?'
+	  help
+	when 'update'
+	  update(book, args[1..-1], hargs)
 	else
-	  table.display
+	  raise StandardError.new("Receipt can not #{verb}.")
 	end
       end
 
-      def self.update(book, args={})
-	id = args[:id] || read_str('ID')
+      def self.update(book, args, hargs)
+	c = book.company
+	id = extract_arg(:id, "ID", args, hargs, c.ledger.map { |e| e.id.to_s })
 	e = book.company.find_entry(id.to_i)
 	raise StandardError.new("Failed to find ledger entry #{id}.") if e.nil?
 	unless e.file.nil? || e.file.size == 0
 	  return false unless confirm("Entry #{id} already has a receipt or file. Replace? [y|n]")
 	end
-	e.file = args[:file] || read_str('File')
-	"Entry #{id}"
+	filenames = Dir.glob(File.dirname(book.data_file) + "/{files,invoices}/**/*").map { |p| File.file?(p) ? File.basename(p) : nil }
+	filenames.delete_if { |m| m.nil? }
+	e.file = hargs[:file] || read_str('File', filenames)
+	e.file = nil if 0 == e.file.size
+	unless '-' == e.file || e.file.nil?
+	  raise StandardError.new("#{e.file} not found.") unless filenames.include?(e.file)
+	end
+	puts "\n#{e.class.to_s.split('::')[-1]} #{e.id} updated.\n\n"
+	puts "#{Oj.dump(e, indent: 2)}" if book.verbose
+	book.company.dirty
       end
 
     end

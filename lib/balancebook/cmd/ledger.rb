@@ -43,7 +43,7 @@ module BalanceBook
 		     'reverse' => 'Reverse the order of the entries',
 		     'missing' => 'Display only entries missing a matching account transaction',
 		   }),
-	  Help.new('new', ['create'], 'Create a new account.', {
+	  Help.new('new', ['create'], 'Create a new ledger entry.', {
 		     'date' => 'Date the entry occurred',
 		     'who' => 'Description of the entry or who it was paid to',
 		     'cat' => 'Category of the entry',
@@ -177,7 +177,7 @@ module BalanceBook
 
       def self.show(book, args, hargs)
 	c = book.company
-	id = extract_arg(:id, "ID", args, hargs, c.accounts.map { |a| a.id } + c.accounts.map { |a| a.name })
+	id = extract_arg(:id, "ID", args, hargs, c.ledger.map { |e| e.id.to_s })
 	entry = c.find_entry(id.to_i)
 	raise StandardError.new("Failed to find ledger entry #{id}.") if entry.nil?
 	puts "\n#{UNDERLINE}Ledger Entry #{entry.id}#{' ' * (67 - entry.id.size)}#{NORMAL}"

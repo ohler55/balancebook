@@ -28,6 +28,7 @@ module BalanceBook
 
       @fx.prepare(self)
       @company.prepare(self)
+      Oj.default_options = { ignore_under: true, omit_nil: true }
     end
 
     def validate
@@ -49,6 +50,7 @@ module BalanceBook
 	Cmd::Help.new('invoice', nil, 'Invoice commands', nil),
 	Cmd::Help.new('ledger', ['entry'], 'Ledger commands', nil),
 	Cmd::Help.new('link', nil, 'Link commands linking ledger entries and account transactions', nil),
+	Cmd::Help.new('receipt', ['receipts'], 'Receipt commands', nil),
 	Cmd::Help.new('report', ['reports'], 'Report commands to display or generate CSV reports', nil),
 	Cmd::Help.new('tax', ['taxes'], 'Tax commands', nil),
 	Cmd::Help.new('transaction', ['trans', 'tx'], 'Account transaction commands (same as account transaction)', nil),
@@ -97,113 +99,14 @@ module BalanceBook
 	Cmd::DateDiff.cmd(self, args[1..-1], hargs)
       when 'payroll'
 	Cmd::Payroll.cmd(self, args[1..-1], hargs)
+      when 'receipt', 'receipts'
+	Cmd::Receipts.cmd(self, args[1..-1], hargs)
       else
 	return false
       end
       save_company() if @save_ok && @company._dirty
       save_fx() if @save_ok && @fx._dirty
       true
-    end
-
-     # TBD swap type and verb var names
-    def cmd(verb, type, args={})
-      case verb
-      when 'new', 'create'
-	cmd_new(type, args)
-      when 'show'
-	cmd_show(type, args)
-      when 'update'
-	cmd_update(type, args)
-      when 'delete', 'del'
-	cmd_del(type, args)
-      when 'list'
-	cmd_list(type, args)
-      when 'import'
-	cmd_import(type, args)
-      when 'report'
-	cmd_report(type, args)
-      else
-	raise StandardError.new("#{verb} is not a valid command.")
-      end
-    end
-
-    def cmd_new(type, args)
-      obj = nil
-      case type
-      when 'transfer'
-	obj = Cmd::Transfer.create(self, args)
-	unless obj.nil?
-	  @company.add_transfer(self, obj[0])
-	  @company.add_entry(self, obj[1]) unless obj[1].nil?
-	end
-      else
-	puts "*** new #{type} #{args}"
-	# TBD
-      end
-      unless obj.nil?
-	if @save_ok
-	  save_company()
-	else
-	  puts Oj.dump(obj, indent: 2)
-	end
-	if obj.is_a?(Array)
-	  obj.each { |o|
-	    puts "\n#{o.class.to_s.split('::')[-1]} #{o.id} added." unless o.nil?
-	  }
-	  puts
-	else
-	  puts "\n#{obj.class.to_s.split('::')[-1]} #{obj.id} added.\n\n"
-	end
-      end
-    end
-
-    def cmd_update(type, args)
-      updated = nil
-      case type
-      when 'receipt'
-	updated = Cmd::Receipts.update(self, args)
-      else
-	puts "*** update #{type} #{args}"
-	# TBD
-	#  entry
-      end
-      if updated
-	if @save_ok
-	  save_company()
-	end
-	puts "\n#{updated} updated.\n\n"
-      end
-    end
-
-    def cmd_list(type, args)
-      case type
-      when 'transfer', 'xfer'
-	Cmd::Transfer.list(self, args)
-      when 'receipts'
-	Cmd::Receipts.report(self, args)
-      else
-	raise StandardError.new("#{type} is not a valid type for a list command.")
-      end
-    end
-
-    def cmd_report(type, args)
-      case type
-      when 'balance'
-	Cmd::Balance.report(self, args)
-      when 'receipts'
-	Cmd::Receipts.report(self, args)
-      end
-=begin
-      rep = @reports.send(type, args)
-      csv = args[:csv]
-      if csv.nil?
-	rep.display
-      else
-	File.open(csv, 'w') { |f|
-	  rep.csv(f)
-	}
-      end
-=end
     end
 
     def save_fx
