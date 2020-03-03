@@ -13,6 +13,7 @@ module BalanceBook
       attr_accessor :payments
       attr_accessor :taxes # TaxAmount array
       attr_accessor :currency
+      attr_accessor :is_penalty
       attr_accessor :_book
       attr_accessor :_company
 
@@ -65,7 +66,7 @@ module BalanceBook
 	nil
       end
 
-      def paid
+      def paid(full=true)
 	recent = nil
 	sum = 0.0
 	@payments.each { |lid|
@@ -74,7 +75,7 @@ module BalanceBook
 	  recent = pd if recent.nil? || recent < pd
 	  sum += lx.amount
 	}
-	recent = nil unless @amount == sum
+	recent = nil unless !full || @amount == sum
 	recent
       end
 
@@ -116,9 +117,10 @@ module BalanceBook
       end
 
       def days_late(as_of=nil)
-	return nil if paid_in_full
-	t0 = submit_date.to_time.to_i
 	as_of = Date.today if as_of.nil?
+	return nil if 0.0 < paid_amount_by(as_of)
+	#return nil if paid_in_full
+	t0 = submit_date.to_time.to_i
 	t1 = as_of.to_time.to_i
 	days = ((t1 - t0) / 86400).to_i
 	return nil if days <= 45

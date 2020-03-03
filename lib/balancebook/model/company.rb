@@ -187,11 +187,6 @@ module BalanceBook
 	@taxes.reject! { |tax| tax.id == id }
       end
 
-      # TBD put somewhere else
-      def reports
-	BalanceBook::Report::Reports.new(self)
-      end
-
       def find_account(id)
 	return nil if @accounts.nil?
 	id = id.downcase

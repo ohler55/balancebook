@@ -80,7 +80,7 @@ module BalanceBook
       def self.list(book, args, hargs)
 	period = extract_period(book, hargs)
 	# TBD filter params like status, category, etc
-	cur = book.fx.base # TBD look in hargs
+	cur = book.fx.base
 	if hargs.has_key?(:currency)
 	  cur = extract_arg(:currency, "Currency", args, hargs, book.fx.currencies.map { |c| c.id } + [book.fx.base])
 	end

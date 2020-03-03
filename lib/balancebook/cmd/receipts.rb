@@ -27,7 +27,6 @@ module BalanceBook
 	@amount = e.amount
 	@file = e.file
 	@file = 'N/A' if @file.is_a?(String) && '-' == @file
-	# TBD get currency
       end
 
       def self.help_cmds

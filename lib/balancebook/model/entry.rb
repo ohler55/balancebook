@@ -24,7 +24,6 @@ module BalanceBook
 
       def prepare(book, company)
 	@_account = company.find_account(@account)
-	# TBD  date
       end
 
       def tax(kind=nil)

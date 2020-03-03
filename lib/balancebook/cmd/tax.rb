@@ -33,7 +33,6 @@ module BalanceBook
 	when 'list'
 	  list(book)
 	when 'show'
-	  # TBD
 	  show(book, args[1..-1], hargs)
 	when 'new', 'create'
 	  create(book, args[1..-1], hargs)

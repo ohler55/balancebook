@@ -73,12 +73,10 @@ module BalanceBook
 	Cmd::Bill.cmd(self, args[1..-1], hargs)
       when 'category', 'cat'
 	Cmd::Category.cmd(self, args[1..-1], hargs)
-      when 'company'
-	# TBD
-      when 'contact'
-	# TBD
       when 'corporation', 'corp'
 	Cmd::Corporation.cmd(self, args[1..-1], hargs)
+      when 'date-diffs', 'date-diff'
+	Cmd::DateDiff.cmd(self, args[1..-1], hargs)
       when 'fx'
 	Cmd::Fx.cmd(self, args[1..-1], hargs)
       when 'invoice'
@@ -87,6 +85,10 @@ module BalanceBook
 	Cmd::Ledger.cmd(self, args[1..-1], hargs)
       when 'link', 'links'
 	Cmd::Links.cmd(self, args[1..-1], hargs)
+      when 'payroll'
+	Cmd::Payroll.cmd(self, args[1..-1], hargs)
+      when 'receipt', 'receipts'
+	Cmd::Receipts.cmd(self, args[1..-1], hargs)
       when 'reports', 'report'
 	Cmd::Report.cmd(self, args[1..-1], hargs)
       when 'tax', 'taxes'
@@ -95,12 +97,6 @@ module BalanceBook
 	Cmd::Transactions.cmd(self, args[1..-1], hargs)
       when 'transfer', 'xfer'
 	Cmd::Transfer.cmd(self, args[1..-1], hargs)
-      when 'date-diffs', 'date-diff'
-	Cmd::DateDiff.cmd(self, args[1..-1], hargs)
-      when 'payroll'
-	Cmd::Payroll.cmd(self, args[1..-1], hargs)
-      when 'receipt', 'receipts'
-	Cmd::Receipts.cmd(self, args[1..-1], hargs)
       else
 	return false
       end

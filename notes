@@ -9,11 +9,6 @@ remember
 todo
 -----------
 
-- income statement
- - opening balance equity?
- - retained earnings?
-
-
 - taxes
  - IRS
   - withholding
@@ -27,9 +22,8 @@ todo
   - PIT (Personal Income Tax)
 
 - todo
-
-- book
- - move receipts
+ - edit option on types
+  - maybe display each and let the user modify the field
 
 
 - maybe have a general asset account

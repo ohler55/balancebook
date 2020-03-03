@@ -11,7 +11,6 @@ module BalanceBook
 
       FX_LOSS  = 'FX_LOSS'
 
-      # TBD
       ASSET     = 'ASSET'     # Cash, Accounts Receivable, Supplies, Equipment
       LIABILITY = 'LIABILITY' # Notes Payable, Accounts Payable, Wages Payable
       EQUITY    = 'EQUITY'    # Common Stock, Retained Earnings

@@ -10,6 +10,7 @@ module BalanceBook
 
       attr_accessor :id
       attr_accessor :to
+      attr_accessor :po
       attr_accessor :amount
       attr_accessor :base_amount
       attr_accessor :off_amount
@@ -17,24 +18,28 @@ module BalanceBook
       attr_accessor :submitted
       attr_accessor :paid_on
       attr_accessor :paid
+      attr_accessor :unpaid
       attr_accessor :penalty
       attr_accessor :late
       attr_accessor :is_penalty
 
-      def initialize(inv, as_of)
+      def initialize(inv, as_of, off=0)
 	unless inv.nil?
 	  @id = inv.id
 	  @to = inv.to
+	  @po = inv.po
 	  @amount = inv.amount
 	  @base_amount = inv.amount - inv.tax
-	  @off_amount = inv.amount - (inv.tax * 0.83)
+	  @off_amount = inv.amount - (inv.tax * off.to_f / 100.0)
 	  @currency = inv.currency
 	  @submitted = inv.submitted
-	  @paid_on = inv.paid
+	  @paid_on = inv.paid(false) # first payment is enough
 	  @paid = inv.paid_amount
+	  @unpaid = @amount - @paid
+	  @unpaid = nil if 0.0 == @unpaid
 	  @penalty = inv.penalty(as_of)
 	  @late = inv.days_late(as_of)
-	  @is_penalty = inv.tax <= 0.0 ? '*' : ' '
+	  @is_penalty = inv.is_penalty ? '*' : ' '
 	end
       end
 
@@ -44,13 +49,15 @@ module BalanceBook
 	  Help.new('list', nil, 'List all invoices.', {
 		     'paid' => 'Only display paid if true, only unpaid if false',
 		     'cust' => 'Only show invoices for specified corporation',
-		     'po' => 'Only show invoices for specified PO',
+		     'po' => 'Only show invoices for specified PO, * indicates all',
 		     'period' => 'Period to display e.g., 2019q3, 2019',
 		     'first' => 'First date to display',
 		     'last' => 'Last date to display',
 		     'csv' => 'Display output as CSV',
 		     'tsv' => 'Display output as TSV',
 		     'reverse' => 'Reverse the order of the entries',
+		     'as_of' => 'Date to calculate penalties from. - and today are valid.',
+		     'off' => 'Percent off of taxes for customer, e.g., 83%',
 		   }),
 	  Help.new('new', ['create'], 'Create a new invoice.', {
 		     'id' => 'ID of the invoice',
@@ -90,7 +97,7 @@ module BalanceBook
       end
 
       def self.delete(book, args, hargs)
-	# TBD
+	# TBD delete not implemented yet
 	puts "Not implemented yet"
       end
 
@@ -134,6 +141,8 @@ module BalanceBook
 	paid = paid.downcase == "true" unless paid.nil?
 	cust = hargs[:cust] || hargs[:corporation]
 	po = hargs[:po]
+	off = hargs[:off]
+	off = off.to_i unless off.nil?
 	tsv = hargs.has_key?(:tsv)
 	csv = hargs.has_key?(:csv)
 	rev = hargs.has_key?(:reverse)
@@ -141,15 +150,21 @@ module BalanceBook
 	cols = [
 	  Col.new('ID', -16, :id, nil),
 	  Col.new('P', 1, :is_penalty, nil),
-	  Col.new('To', -16, :to, nil),
+	  Col.new('To', -1, :to, nil),
 	  Col.new('Amount', 10, :amount, '%.2f'),
 	  Col.new('Pre Tax', 10, :base_amount, '%.2f'),
-	  Col.new('83% Off', 10, :off_amount, '%.2f'),
 	  Col.new('Cur', 3, :currency, nil),
 	  Col.new('Submitted', -10, :submitted, nil),
 	  Col.new('Paid On', -10, :paid_on, nil),
 	  Col.new('Paid', -10, :paid, '%.2f'),
+	  Col.new('Unpaid', -10, :unpaid, '%.2f'),
 	]
+	unless off.nil?
+	  cols.insert(5, Col.new('83% Off', 10, :off_amount, '%.2f'))
+	end
+	unless po.nil?
+	  cols.insert(3, Col.new('PO', -1, :po, nil))
+	end
 	unless as_of.nil?
 	  cols << Col.new('Penalty', -10, :penalty, '%.2f')
 	  cols << Col.new('Late', -5, :late, '%d')
@@ -175,11 +190,11 @@ module BalanceBook
 	    next if !paid && !ip.nil?
 	  end
 	  next if !cust.nil? && cust != inv.to
-	  next if !po.nil? && po != inv.po
-	  table.add_row(new(inv, as_of))
+	  next if !po.nil? && '*' != po && po != inv.po
+	  table.add_row(new(inv, as_of, off))
 	  total += inv.amount
 	  tax += inv.tax
-	  if inv.tax <= 0.0  # TBD better approach needed
+	  if inv.is_penalty
 	    penalty += inv.amount
 	    paid_penalty += inv.paid_amount
 	  end
@@ -220,6 +235,7 @@ module BalanceBook
 	model.id = extract_arg(:id, 'ID', args, hargs)
 	model.submitted = extract_date(:submitted, 'Submitted', args, hargs)
 	model.to = extract_arg(:to, 'To', args, hargs, c.corporations.map { |c| c.id })
+	model.po = extract_arg(:po, 'PO', args, hargs)
 	model.amount = extract_amount(:amount, 'Amount', args, hargs)
 	model.currency = extract_arg(:currency, "Currency", args, hargs, book.fx.currencies.map { |c| c.id } + [book.fx.base])
 	tax = extract_arg(:tax, 'Tax', args, hargs, c.taxes.map { |t| t.id })
@@ -227,10 +243,14 @@ module BalanceBook
 	  ta = make_taxes(book, tax, model.amount)
 	  puts ta.map { |ta| "  %s: %0.2f" % [ta.tax, ta.amount] }.join('  ') if $verbose
 	  model.taxes = ta
+	else
+	  model.is_penalty = extract_boolean(:penalty, 'Penalty?', args, hargs)
+
 	end
 	model.validate(book)
 	book.company.add_invoice(book, model)
 	puts "\n#{model.class.to_s.split('::')[-1]} #{model.id} added.\n\n"
+	puts "#{Oj.dump(model, indent: 2)}" if book.verbose
 	book.company.dirty
       end
 

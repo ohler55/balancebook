@@ -22,7 +22,9 @@ module BalanceBook
 
       def extract_date(id, label, args, hargs)
 	v = extract_arg(id, label, args, hargs)
-	if 0 < v.size
+	if '-' == v || 'today' == v
+	  v = Date.today.to_s
+	elsif 0 < v.size
 	  unless /^(19|20)\d\d[-.](0[1-9]|1[012])[-.](0[1-9]|[12][0-9]|3[01])$/.match?(v)
 	    raise StandardError.new("#{v} did not match format YYYY-MM-DD.")
 	  end
@@ -34,6 +36,14 @@ module BalanceBook
 
       def extract_amount(id, label, args, hargs)
 	extract_arg(id, label, args, hargs).to_f.round(2)
+      end
+
+      def extract_boolean(id, label, args, hargs)
+	case extract_arg(id, label, args, hargs).downcase
+	when 'true', 'yes', 't', 'y'
+	  return true
+	end
+	false
       end
 
       def extract_period(book, args)

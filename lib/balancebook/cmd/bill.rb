@@ -60,7 +60,7 @@ module BalanceBook
       end
 
       def self.delete(book, args, hargs)
-	# TBD
+	# TBD delete not implemented yet
 	puts "Not implemented yet"
       end
 
