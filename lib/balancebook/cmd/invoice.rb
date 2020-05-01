@@ -70,6 +70,7 @@ module BalanceBook
 	  Help.new('pay', nil, 'Pay an invoice.', {
 		     'id' => 'ID of the invoice',
 		     'lid' => 'Ledger Entry ID of the payment',
+		     'partial' => 'True for partial payments',
 		   }),
 	  Help.new('show', ['details'], 'Show invoice details.', {'id' => 'ID of the invoice to display'}),
 	]

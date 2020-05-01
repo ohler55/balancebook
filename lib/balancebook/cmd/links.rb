@@ -99,7 +99,7 @@ module BalanceBook
 	    raise StandardError.new("Failed to find #{acct.name} transaction #{tid}.")
 	  end
 	end
-	raise StandardError.new("Ledger amount #{sum} does not equal #{entry._account.name} amount of #{tx.amount}.") unless sum == tx.amount
+	raise StandardError.new("Ledger amount #{sum} does not equal #{acct.name} amount of #{tx.amount}.") unless sum == tx.amount
 	if 1 < entries.size
 	  entries.each { |e| e.acct_tx = tx.id }
 	  tx.ledger_tx = entries.map { |e| e.id }

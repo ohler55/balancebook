@@ -31,7 +31,10 @@ module BalanceBook
 		     'last' => 'Last date to display',
 		     'missing' => 'Only transactions with missing ledger entries should be displayed.'
 		   }),
-	  Help.new('update', nil, 'Update account with QFX file.', {'id' => 'ID or name of account to update.'}),
+	  Help.new('update', nil, 'Update account with QFX file.', {
+		     'id' => 'ID or name of account to update.',
+		     'file' => 'QFX file to load.',
+		   }),
 	]
       end
 
