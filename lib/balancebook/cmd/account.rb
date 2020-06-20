@@ -139,7 +139,10 @@ module BalanceBook
 	  raise StandardError.new("OFX file account number mismatch.")
 	end
 
-	bank['STMTRS']['BANKTRANLIST']['STMTTRN'].each { |bt|
+	tx = bank['STMTRS']['BANKTRANLIST']['STMTTRN']
+	case tx
+	when Hash
+	  bt = tx
 	  amount = bt['TRNAMT'].to_f
 	  t = bt['DTPOSTED']
 	  date = "#{t[0..3]}-#{t[4..5]}-#{t[6..7]}"
@@ -148,7 +151,18 @@ module BalanceBook
 	    puts "#{trans.id} added"
 	    c.dirty
 	  end
-	}
+	when Array
+	  tx.each { |bt|
+	    amount = bt['TRNAMT'].to_f
+	    t = bt['DTPOSTED']
+	    date = "#{t[0..3]}-#{t[4..5]}-#{t[6..7]}"
+	    trans = Model::Transaction.new(bt['FITID'], date, amount, bt['NAME'].strip)
+	    if acct.add_trans(trans)
+	      puts "#{trans.id} added"
+	      c.dirty
+	    end
+	  }
+	end
       end
 
     end
