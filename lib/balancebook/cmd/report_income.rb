@@ -75,6 +75,7 @@ module BalanceBook
 		     'period' => 'Period to match e.g., 2019q3, 2019',
 		     'first' => 'First date to match',
 		     'last' => 'Last date to match',
+		     'accrual' => 'Use Accrual account method',
 		     'csv' => 'Display output as CSV',
 		     'tsv' => 'Display output as TSV',
 		     'parens' => 'Parenthesis for negative amounts'
@@ -88,6 +89,7 @@ module BalanceBook
 	tsv = hargs.has_key?(:tsv)
 	csv = hargs.has_key?(:csv)
 	rev = hargs.has_key?(:reverse)
+	accrual = hargs.has_key?(:accrual)
 	cur = book.fx.base
 	if hargs.has_key?(:currency)
 	  cur = extract_arg(:currency, "Currency", args, hargs, book.fx.currencies.map { |c| c.id } + [book.fx.base])
@@ -95,7 +97,8 @@ module BalanceBook
 	parens = hargs.has_key?(:parens)
 	money_fmt = parens ? :money : '%.2f'
 	money_size = parens ? 11 : 10
-	table = Table.new("#{c.name} Income Statement from #{period.first} to #{period.last} in #{cur}", [
+	method = accrual ? 'Accrual' : 'Cash'
+	table = Table.new("#{c.name} #{method} Income Statement from #{period.first} to #{period.last} in #{cur}", [
 			    Col.new('', -1, :label, nil),
 			    Col.new('', money_size, :plus, money_fmt),
 			    Col.new('', money_size, :base_plus, money_fmt),
@@ -104,24 +107,11 @@ module BalanceBook
 			  ])
 
 	cats = by_cat(book, period, cur)
-
-	table.add_row(nil)
-	revenue, ar = add_revenue(table, cats, book, period, cur)
-	table.add_row(nil)
-	expenses, ap = add_expenses(table, cats, book, period, cur)
-	table.add_row(nil)
-
-	row = GenRow.new
-	row.label = 'Cash Net Income'
-	row.base_neg = revenue - expenses
-	row.ansi = BOLD
-	table.add_row(row)
-
-	row = GenRow.new
-	row.label = 'Accrual Net Income'
-	row.base_neg = revenue + ar - expenses - ap
-	row.ansi = BOLD
-	table.add_row(row)
+	if accrual
+	  report_accrual(book, c, period, cur, cats, table)
+	else
+	  report_cash(book, c, period, cur, cats, table)
+	end
 
 	if tsv
 	  table.tsv
@@ -132,14 +122,43 @@ module BalanceBook
 	end
       end
 
+      def self.report_accrual(book, c, period, cur, cats, table)
+	table.add_row(nil)
+	revenue = add_accrual_revenue(table, cats, book, period, cur)
+	table.add_row(nil)
+	expenses = add_accrual_expenses(table, cats, book, period, cur)
+	table.add_row(nil)
+
+	row = GenRow.new
+	row.label = 'Net Income'
+	row.base_neg = revenue - expenses
+	row.ansi = BOLD
+	table.add_row(row)
+      end
+
+      def self.report_cash(book, c, period, cur, cats, table)
+	table.add_row(nil)
+	revenue = add_revenue(table, cats, book, period, cur)
+	table.add_row(nil)
+	expenses = add_expenses(table, cats, book, period, cur)
+	table.add_row(nil)
+
+	row = GenRow.new
+	row.label = 'Net Income'
+	row.base_neg = revenue - expenses
+	row.ansi = BOLD
+	table.add_row(row)
+      end
+
       def self.add_revenue(table, cats, book, period, cur)
 	c = book.company
 	base_rate = book.fx.find_rate(cur, period.last)
 	row = GenRow.new
+	row.label = 'Revenue'
 	row.base_plus = cur
 	row.base_neg = cur
+	row.ansi = BOLD + UNDERLINE
 	table.add_row(row)
-	table.add_row(Div.new('Revenue'))
 
 	total = 0.0
 	cats.keys.sort.each { |k|
@@ -171,31 +190,22 @@ module BalanceBook
 	}
 	table.add_row(nil)
 	row = GenRow.new
-	row.label = '  Cash Total'
+	row.label = '  Revenue Total'
 	row.base_neg = total
 	row.ansi = BOLD
 	table.add_row(row)
 
-	table.add_row(nil)
-	ar_total = add_receivables_row(table, book, period, cur, false)
-
-	table.add_row(nil)
-	row = GenRow.new
-	row.label = '  Accrual Total'
-	row.base_neg = total + ar_total
-	row.ansi = BOLD
-	table.add_row(row)
-
-	[total, ar_total]
+	total
       end
 
       def self.add_expenses(table, cats, book, period, cur)
 	c = book.company
 	row = GenRow.new
+	row.label = 'Expenses'
 	row.base_plus = cur
 	row.base_neg = cur
+	row.ansi = BOLD + UNDERLINE
 	table.add_row(row)
-	table.add_row(Div.new('Expenses'))
 
 	total = 0.0
 	cats.keys.sort.each { |k|
@@ -232,23 +242,13 @@ module BalanceBook
 	row.ansi = BOLD
 	table.add_row(row)
 
-	table.add_row(nil)
-	ap_total = add_payable_row(table, book, period, cur, true)
-
-
-	table.add_row(nil)
-	row = GenRow.new
-	row.label = '  Accrual Total'
-	row.base_plus = total + ap_total
-	row.ansi = BOLD
-	table.add_row(row)
-
-	[total, ap_total]
+	total
       end
 
       def self.by_cat(book, period, cur)
 	c = book.company
 	cats = {}
+	sum = 0.0
 	c.ledger.each { |e|
 	  d = Date.parse(e.date)
 	  next unless period.in_range(d)
@@ -275,6 +275,153 @@ module BalanceBook
 	  }
 	}
 	cats
+      end
+
+      def self.add_accrual_revenue(table, cats, book, period, cur)
+	c = book.company
+	base_rate = book.fx.find_rate(cur, period.last)
+	row = GenRow.new
+	row.label = 'Revenue'
+	row.base_plus = cur
+	row.base_neg = cur
+	row.ansi = BOLD + UNDERLINE
+	table.add_row(row)
+
+	total = 0.0
+	cats.keys.sort.each { |k|
+	  cat = cats[k]
+	  next unless false == cat.expense
+	  next if cat.empty?
+	  next if cat.id == 'T2 Withholding'
+	  next if cat.id == 'Invoice Payment'
+
+	  if 1 < cat.curs.size
+	    row = GenRow.new
+	    row.label = "  #{cat.id}"
+	    table.add_row(row)
+
+	    cat.curs.each { |_,c|
+	      row = GenRow.new
+	      row.label = "    #{c.id}"
+	      row.neg = c.amount
+	      row.base_neg = c.base_amount
+	      table.add_row(row)
+	      total += c.base_amount
+	    }
+	  else
+	    cv = cat.curs.values[0]
+	    row = GenRow.new
+	    row.label = "  #{cat.id} (#{cv.id})"
+	    row.neg = cv.amount
+	    row.base_neg = cv.base_amount
+	    table.add_row(row)
+	    total += cv.base_amount
+	  end
+	}
+	curs = []
+	c.invoices.each { |inv|
+	  d = Date.parse(inv.submitted)
+	  next unless period.in_range(d)
+	  next if curs.include?(inv.currency)
+	  curs << inv.currency
+	}
+	inv_total = 0.0
+	if 1 <= curs.size
+	    row = GenRow.new
+	    row.label = '  Invoice'
+	    table.add_row(row)
+	    curs.each { |cr|
+	      cur_total = 0.0
+	      base_total = 0.0
+	      c.invoices.each { |inv|
+		d = Date.parse(inv.submitted)
+		next unless period.in_range(d)
+		next unless inv.currency == cr
+		cur_total += inv.amount
+		base_total += inv.amount_in_currency(cur)
+	      }
+	      row = GenRow.new
+	      row.label = "    #{cr}"
+	      row.neg = cur_total
+	      row.base_neg = base_total
+	      table.add_row(row)
+	      inv_total += row.base_neg
+	  }
+	else
+	  cur_total = 0.0
+	  base_total = 0.0
+	  c.invoices.each { |inv|
+	    d = Date.parse(inv.submitted)
+	    next unless period.in_range(d)
+	    cur_total += inv.amount
+	    base_total += inv.amount_in_currency(cur)
+	  }
+	  row = GenRow.new
+	  row.label = "  Invoices (#{curs[0]})"
+	  row.neg = cur_total
+	  row.base_neg = base_total
+	  table.add_row(row)
+	  inv_total += row.base_neg
+	end
+	total += inv_total
+
+	table.add_row(nil)
+	row = GenRow.new
+	row.label = '  Revenue Total'
+	row.base_neg = total
+	row.ansi = BOLD
+	table.add_row(row)
+
+	total
+      end
+
+      def self.add_accrual_expenses(table, cats, book, period, cur)
+	c = book.company
+	row = GenRow.new
+	row.label = 'Expenses'
+	row.base_plus = cur
+	row.base_neg = cur
+	row.ansi = BOLD + UNDERLINE
+	table.add_row(row)
+
+	total = 0.0
+	cats.keys.sort.each { |k|
+	  cat = cats[k]
+	  next unless true == cat.expense
+	  next if cat.empty?
+	  if 1 < cat.curs.size
+	    row = GenRow.new
+	    row.label = "  #{cat.id}"
+	    table.add_row(row)
+
+	    cat.curs.each { |_,c|
+	      row = GenRow.new
+	      row.label = "    #{c.id}"
+	      row.plus = -c.amount
+	      row.base_plus = -c.base_amount
+	      table.add_row(row)
+	      total -= c.base_amount
+	    }
+	  else
+	    c = cat.curs.values[0]
+	    row = GenRow.new
+	    row.label = "  #{cat.id} (#{c.id})"
+	    row.plus = -c.amount
+	    row.base_plus = -c.base_amount
+	    table.add_row(row)
+	    total -= c.base_amount
+	  end
+	}
+	total += add_payable_row(table, book, period, cur, true)
+
+	table.add_row(nil)
+	row = GenRow.new
+	row.label = '  Expense Total'
+	row.base_plus = total
+	row.ansi = BOLD
+	table.add_row(row)
+
+	total
       end
 
     end

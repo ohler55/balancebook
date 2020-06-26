@@ -9,6 +9,12 @@ remember
 todo
 -----------
 
+- change labels for invoices
+ - instead of paid could be "adjusted" and "withheld"
+  - look at payments, largest is adjusted, other is withheld
+  - if unpaid then that is withheld is partial
+
+
 - taxes
  - IRS
   - withholding

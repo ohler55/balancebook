@@ -42,6 +42,45 @@ module BalanceBook
 	ar_total
       end
 
+      def add_previous_year_row(table, book, period, cur, left)
+	sum = 0.0
+	c = book.company
+	base_rate = book.fx.find_rate(cur, period.last)
+	arm = {}
+	c.invoices.each { |inv|
+	  d = Date.parse(inv.submitted)
+	  next if period.first < d
+	  out = inv.amount - inv.paid_amount_by(period.first)
+	  next if out <= 0.0
+	  next if out < 10000.0 # TBD cheat for T4 amounts. Need a better approach
+	  ar = arm[inv.currency]
+	  if ar.nil?
+	    ar = CurAmount.new
+	    arm[inv.currency] = ar
+	  end
+	  inv_rate = book.fx.find_rate(inv.currency, period.last)
+	  ar.amount += out
+	  ar.base_amount += (out * base_rate / inv_rate).round(2)
+	  #puts "#{inv.id}  #{inv.submitted}  #{inv.submitted}  #{out} "
+	  sum += out
+	}
+	ar_total = 0.0
+	arm.each { |k,ar|
+	  row = GenRow.new
+	  row.label = "  Previous Year Income #{k}"
+	  if left
+	    row.plus = ar.amount
+	    row.base_plus = ar.base_amount
+	  else
+	    row.neg = ar.amount
+	    row.base_neg = ar.base_amount
+	  end
+	  table.add_row(row)
+	  ar_total += ar.base_amount
+	}
+	ar_total
+      end
+
       def add_payable_row(table, book, period, cur, left)
 	c = book.company
 	ap_total = 0.0

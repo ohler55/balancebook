@@ -80,7 +80,6 @@ module BalanceBook
       def initialize(label)
 	@label = label
       end
-
     end
 
     class Table

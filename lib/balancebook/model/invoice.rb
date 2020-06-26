@@ -135,6 +135,13 @@ module BalanceBook
 	day_rate * days * @amount
       end
 
+      def amount_in_currency(base_cur)
+	return @amount if @currency == base_cur
+	base_rate = _book.fx.find_rate(base_cur, @submitted)
+	inv_rate = _book.fx.find_rate(@currency, @submitted)
+	(@amount * base_rate / inv_rate).round(2)
+      end
+
     end
   end
 end

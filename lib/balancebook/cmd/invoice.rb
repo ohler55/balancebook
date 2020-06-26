@@ -17,11 +17,14 @@ module BalanceBook
       attr_accessor :currency
       attr_accessor :submitted
       attr_accessor :paid_on
+      attr_accessor :adjusted
+      attr_accessor :withheld
       attr_accessor :paid
       attr_accessor :unpaid
       attr_accessor :penalty
       attr_accessor :late
       attr_accessor :is_penalty
+      attr_accessor :ansi
 
       def initialize(inv, as_of, off=0)
 	unless inv.nil?
@@ -40,7 +43,26 @@ module BalanceBook
 	  @penalty = inv.penalty(as_of)
 	  @late = inv.days_late(as_of)
 	  @is_penalty = inv.is_penalty ? '*' : ' '
+	  @adjusted = @amount
+	  @withheld = 0.0
+	  unless inv.payments.nil?
+	    if 1 < inv.payments.size
+	      most = 0.0
+	      inv.payments.each { |lid|
+		lx = inv._company.find_entry(lid)
+		most = lx.amount unless lx.nil? || most < lx.amount
+	      }
+	      @adjusted = most
+	      @withheld = @amount - @adjusted
+	    elsif inv.paid_in_full
+	      @adjusted = @amount
+	    else
+	      @adjusted = inv.paid_amount
+	      @withheld = @amount - @adjusted
+	    end
+	  end
 	end
+	@ansi = nil
       end
 
       def self.help_cmds
@@ -130,6 +152,22 @@ module BalanceBook
 	puts
       end
 
+      def self.header(table, to, cur)
+	row = new(nil, nil)
+	row.id = "#{to} #{cur}"
+	row.is_penalty = 'P'
+	row.amount = 'Amount'
+	row.base_amount = 'Pre Tax'
+	row.adjusted = 'Adjusted'
+	row.withheld = 'Withheld'
+	row.submitted = 'Submitted'
+	row.paid_on = 'Paid On'
+	row.paid = 'Paid'
+	row.unpaid = 'Unpaid'
+	row.ansi = BOLD + UNDERLINE
+	table.add_row(row)
+      end
+
       def self.list(book, args, hargs)
 	as_of = nil
 	if hargs.has_key?(:as_of)
@@ -151,10 +189,10 @@ module BalanceBook
 	cols = [
 	  Col.new('ID', -16, :id, nil),
 	  Col.new('P', 1, :is_penalty, nil),
-	  Col.new('To', -1, :to, nil),
 	  Col.new('Amount', 10, :amount, '%.2f'),
 	  Col.new('Pre Tax', 10, :base_amount, '%.2f'),
-	  Col.new('Cur', 3, :currency, nil),
+	  Col.new('Adjusted', 10, :adjusted, '%.2f'),
+	  Col.new('Withheld', 10, :withheld, '%.2f'),
 	  Col.new('Submitted', -10, :submitted, nil),
 	  Col.new('Paid On', -10, :paid_on, nil),
 	  Col.new('Paid', -10, :paid, '%.2f'),
@@ -174,58 +212,82 @@ module BalanceBook
 	title += " for #{cust}" unless cust.nil?
 	title += " PO #{po}" unless po.nil?
 	title += " between #{period.first} and #{period.last}" if show_period
-
 	table = Table.new(title, cols)
-	total = 0.0
-	tax = 0.0
-	penalty = 0.0
-	paid_total = 0.0
-	paid_penalty = 0.0
 
+	table.add_row(new(nil, nil))
+	tos = {}
 	book.company.invoices.each { |inv|
 	  date = Date.parse(inv.submitted)
 	  next unless period.in_range(date)
-	  unless paid.nil?
-	    ip = inv.paid
-	    next if paid && ip.nil?
-	    next if !paid && !ip.nil?
-	  end
-	  next if !cust.nil? && cust != inv.to
-	  next if !po.nil? && '*' != po && po != inv.po
-	  table.add_row(new(inv, as_of, off))
-	  total += inv.amount
-	  tax += inv.tax
-	  if inv.is_penalty
-	    penalty += inv.amount
-	    paid_penalty += inv.paid_amount
-	  end
-	  paid_total += inv.paid_amount
+	  tos[inv.to] = inv.currency unless tos.include?(inv.to)
 	}
-	table.rows.reverse! unless rev
-	table.add_row(new(nil, nil))
+	tos.keys.sort.each { |to|
+	  row = new(nil, nil)
+	  header(table, to, tos[to])
 
-	row = new(nil, nil)
-	row.id = 'Total'
-	row.amount = total
-	row.base_amount = total - tax
-	row.off_amount = total - (tax * 0.83)
-	row.paid = paid_total
-	table.add_row(row)
+	  total = 0.0
+	  tax = 0.0
+	  penalty = 0.0
+	  paid_total = 0.0
+	  paid_penalty = 0.0
+	  adj_total = 0.0
+	  adj_penalty = 0.0
+	  with_total = 0.0
 
-	row = new(nil, nil)
-	row.id = 'Exclude Penalty'
-	row.amount = total - penalty
-	row.base_amount = total - tax - penalty
-	row.off_amount = total - (tax * 0.83) - penalty
-	row.paid = paid_total - paid_penalty
-	table.add_row(row)
+	  book.company.invoices.reverse.each { |inv|
+	    date = Date.parse(inv.submitted)
+	    next unless period.in_range(date)
+	    next unless inv.to == to
+	    unless paid.nil?
+	      ip = inv.paid
+	      next if paid && ip.nil?
+	      next if !paid && !ip.nil?
+	    end
+	    next if !cust.nil? && cust != inv.to
+	    next if !po.nil? && '*' != po && po != inv.po
+	    row = new(inv, as_of, off)
+	    table.add_row(row)
+	    total += inv.amount
+	    tax += inv.tax
+	    if inv.is_penalty
+	      penalty += inv.amount
+	      paid_penalty += inv.paid_amount
+	      adj_penalty += inv.paid_amount
+	    end
+	    paid_total += inv.paid_amount
+	    adj_total += row.adjusted
+	    with_total += row.withheld
+	  }
+	  table.add_row(new(nil, nil))
 
+	  row = new(nil, nil)
+	  row.id = "#{to} Total"
+	  row.amount = total
+	  row.base_amount = total - tax
+	  row.off_amount = total - (tax * 0.83)
+	  row.paid = paid_total
+	  row.adjusted = adj_total
+	  row.withheld = with_total
+	  table.add_row(row)
+
+	  if 0.0 < paid_penalty
+	    row = new(nil, nil)
+	    row.id = 'Exclude Penalty'
+	    row.amount = total - penalty
+	    row.base_amount = total - tax - penalty
+	    row.off_amount = total - (tax * 0.83) - penalty
+	    row.paid = paid_total - paid_penalty
+	    row.adjusted = adj_total - adj_penalty
+	    table.add_row(row)
+	  end
+	  table.add_row(new(nil, nil))
+	}
 	if tsv
 	  table.tsv
 	elsif csv
 	  table.csv
 	else
-	  table.display
+	  table.display(false)
 	end
       end
 
