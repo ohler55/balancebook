@@ -9,6 +9,9 @@ remember
 todo
 -----------
 
+- handle QFX for investment account
+- change trade to invest
+
 - change labels for invoices
  - instead of paid could be "adjusted" and "withheld"
   - look at payments, largest is adjusted, other is withheld

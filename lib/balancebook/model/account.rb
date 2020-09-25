@@ -5,9 +5,10 @@ module BalanceBook
 
     class Account < Base
 
-      CHECKING = 'CHECKING'
-      SAVINGS  = 'SAVINGS'
-      CASH     = 'CASH'
+      CHECKING   = 'CHECKING'
+      SAVINGS    = 'SAVINGS'
+      CASH       = 'CASH'
+      INVESTMENT = 'INVESTMENT'
 
       FX_LOSS  = 'FX_LOSS'
 
@@ -41,7 +42,7 @@ module BalanceBook
       def validate(book)
 	raise StandardError.new("Account ID can not be empty.") unless !@id.nil? && 0 < @id.size
 	raise StandardError.new("Account name can not be empty.") unless !@name.nil? && 0 < @name.size
-	raise StandardError.new("Account kind of '#{@kind}' is not valid.") unless [CHECKING, SAVINGS, CASH, FX_LOSS].include?(@kind)
+	raise StandardError.new("Account kind of '#{@kind}' is not valid.") unless [CHECKING, SAVINGS, CASH, FX_LOSS, INVESTMENT].include?(@kind)
 	unless @transactions.nil?
 	  dups = {}
 	  @transactions.each { |t|

@@ -17,7 +17,7 @@ module BalanceBook
 	  Help.new('new', ['create'], 'Create a new account.', {
 		     'id' => 'ID of account (a short alias)',
 		     'name' => 'Name of the account or bank',
-		     'kind' => 'CHECKING, SAVINGS, or CASH',
+		     'kind' => 'CHECKING, SAVINGS, CASH, or INVESTMENT',
 		     'addr' => 'Address of bank',
 		     'aba' => 'ABA number',
 		     'number' => 'Account number',
@@ -74,6 +74,7 @@ module BalanceBook
 	model.kind = extract_arg(:kind, "Kind", args, hargs, [
 				   Model::Account::CHECKING,
 				   Model::Account::SAVINGS,
+				   Model::Account::INVESTMENT,
 				   Model::Account::CASH])
 	model.currency = extract_arg(:currency, "Currency", args, hargs, book.fx.currencies.map { |c| c.id } + [book.fx.base])
 	book.company.add_account(book, model)
@@ -133,12 +134,21 @@ module BalanceBook
 	content = File.read(File.expand_path(file))
 	ofx = OFX.parse(content)
 
-	bank = ofx['OFX']['BANKMSGSRSV1']['STMTTRNRS']
+	ofx = ofx['OFX']
+	bank_msg = ofx['BANKMSGSRSV1']
+	if bank_msg.nil?
+	  update_investment(book, c, acct, ofx)
+	else
+	  update_bank(book, c, acct, bank_msg)
+	end
+      end
+
+      def self.update_bank(book, c, acct, bank_msg)
+	bank = bank_msg['STMTTRNRS']
 	raise StandardError.new("OFX file indicated a non-OK status.") unless 0 == bank['STATUS']['CODE'].to_i
 	unless bank['STMTRS']['BANKACCTFROM']['ACCTID'] == book.acct_info[acct.id]['number']
 	  raise StandardError.new("OFX file account number mismatch.")
 	end
-
 	tx = bank['STMTRS']['BANKTRANLIST']['STMTTRN']
 	case tx
 	when Hash
@@ -157,6 +167,69 @@ module BalanceBook
 	    t = bt['DTPOSTED']
 	    date = "#{t[0..3]}-#{t[4..5]}-#{t[6..7]}"
 	    trans = Model::Transaction.new(bt['FITID'], date, amount, bt['NAME'].strip)
+	    if acct.add_trans(trans)
+	      puts "#{trans.id} added"
+	      c.dirty
+	    end
+	  }
+	end
+      end
+
+      def self.update_investment(book, c, acct, ofx)
+	bank = ofx['INVSTMTMSGSRSV1']
+	bank = bank['INVSTMTTRNRS']
+	raise StandardError.new("OFX file indicated a non-OK status.") unless 0 == bank['STATUS']['CODE'].to_i
+	unless bank['INVSTMTRS']['INVACCTFROM']['ACCTID'] == book.acct_info[acct.id]['number']
+	  raise StandardError.new("OFX file account number mismatch.")
+	end
+	list = bank['INVSTMTRS']['INVTRANLIST']
+	income = list['INCOME']
+	case income
+	when Hash
+	  bt = income
+	  amount = bt['TOTAL'].to_f
+	  it = bt['INVTRAN']
+	  t = it['DTTRADE']
+	  date = "#{t[0..3]}-#{t[4..5]}-#{t[6..7]}"
+	  trans = Model::Transaction.new(it['FITID'], date, amount, it['MEMO'].strip)
+	  if acct.add_trans(trans)
+	    puts "#{trans.id} added"
+	    c.dirty
+	  end
+	when Array
+	  income.each { |bt|
+	    amount = bt['TOTAL'].to_f
+	    it = bt['INVTRAN']
+	    t = it['DTTRADE']
+	    date = "#{t[0..3]}-#{t[4..5]}-#{t[6..7]}"
+	    trans = Model::Transaction.new(it['FITID'], date, amount, it['MEMO'].strip)
+	    if acct.add_trans(trans)
+	      puts "#{trans.id} added"
+	      c.dirty
+	    end
+	  }
+	end
+
+	txa = list['INVBANKTRAN']
+	case txa
+	when Hash
+	  bt = txa
+	  st = bt['STMTTRN']
+	  amount = st['TRNAMT'].to_f
+	  t = st['DTPOSTED']
+	  date = "#{t[0..3]}-#{t[4..5]}-#{t[6..7]}"
+	  trans = Model::Transaction.new(st['FITID'], date, amount, st['MEMO'].strip)
+	  if acct.add_trans(trans)
+	    puts "#{trans.id} added"
+	    c.dirty
+	  end
+	when Array
+	  txa.each { |bt|
+	    st = bt['STMTTRN']
+	    amount = st['TRNAMT'].to_f
+	    t = st['DTPOSTED']
+	    date = "#{t[0..3]}-#{t[4..5]}-#{t[6..7]}"
+	    trans = Model::Transaction.new(st['FITID'], date, amount, st['MEMO'].strip)
 	    if acct.add_trans(trans)
 	      puts "#{trans.id} added"
 	      c.dirty
