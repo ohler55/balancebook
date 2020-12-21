@@ -337,8 +337,10 @@ module BalanceBook
 		d = Date.parse(inv.submitted)
 		next unless period.in_range(d)
 		next unless inv.currency == cr
-		cur_total += inv.amount
-		base_total += inv.amount_in_currency(cur)
+		#cur_total += inv.amount
+		#base_total += inv.amount_in_currency(cur)
+		cur_total += inv.income
+		base_total += inv.income_in_currency(cur)
 	      }
 	      row = GenRow.new
 	      row.label = "    #{cr}"
@@ -353,8 +355,10 @@ module BalanceBook
 	  c.invoices.each { |inv|
 	    d = Date.parse(inv.submitted)
 	    next unless period.in_range(d)
-	    cur_total += inv.amount
-	    base_total += inv.amount_in_currency(cur)
+	    #cur_total += inv.amount
+	    #base_total += inv.amount_in_currency(cur)
+	    cur_total += inv.income
+	    base_total += inv.income_in_currency(cur)
 	  }
 	  row = GenRow.new
 	  row.label = "  Invoices (#{curs[0]})"

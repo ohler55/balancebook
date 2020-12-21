@@ -14,11 +14,12 @@ module BalanceBook
 	c.invoices.each { |inv|
 	  d = Date.parse(inv.submitted)
 	  next if period.last < d
-	  out = inv.amount - inv.paid_amount_by(period.last)
+	  #out = inv.amount - inv.paid_amount_by(period.last)
+	  out = inv.income - inv.paid_amount_by(period.last)
 	  next if out <= 0.0
 	  ar = arm[inv.currency]
 	  if ar.nil?
-	    ar = CurAmount.new
+	    ar = CurAmount.new(inv.currency)
 	    arm[inv.currency] = ar
 	  end
 	  inv_rate = book.fx.find_rate(inv.currency, period.last)
@@ -50,12 +51,13 @@ module BalanceBook
 	c.invoices.each { |inv|
 	  d = Date.parse(inv.submitted)
 	  next if period.first < d
-	  out = inv.amount - inv.paid_amount_by(period.first)
+	  #out = inv.amount - inv.paid_amount_by(period.first)
+	  out = inv.income - inv.paid_amount_by(period.first)
 	  next if out <= 0.0
 	  next if out < 10000.0 # TBD cheat for T4 amounts. Need a better approach
 	  ar = arm[inv.currency]
 	  if ar.nil?
-	    ar = CurAmount.new
+	    ar = CurAmount.new(inv.currency)
 	    arm[inv.currency] = ar
 	  end
 	  inv_rate = book.fx.find_rate(inv.currency, period.last)
@@ -91,10 +93,10 @@ module BalanceBook
 	  next if period.last < d
 	  out = bill.amount - bill.paid_amount_by(period.last)
 	  next if out <= 0.0
-	  ap = apm[bill.currency]
+	  ap = apm[bill.from]
 	  if ap.nil?
-	    ap = CurAmount.new
-	    apm[bill.currency] = ap
+	    ap = CurAmount.new(bill.currency)
+	    apm[bill.from] = ap
 	  end
 	  bill_rate = book.fx.find_rate(bill.currency, period.last)
 	  ap.amount += out
@@ -102,7 +104,7 @@ module BalanceBook
 	}
 	apm.each { |k,ap|
 	  row = GenRow.new
-	  row.label = "  Accounts Payable #{k}"
+	  row.label = "  #{k} Payable (#{ap.currency})"
 	  if left
 	    row.plus = ap.amount
 	    row.base_plus = ap.base_amount

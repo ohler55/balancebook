@@ -114,15 +114,17 @@ module BalanceBook
 	raise StandardError.new("Failed to find account #{name}.") if acct.nil?
 	id = extract_arg(:id, "ID", args[1..-1], hargs, c.accounts.map { |a| a.id } + c.accounts.map { |a| a.name })
 
-	# TBD extract date instead
-	date = args[:date] || read_str('Date')
+	date = hargs[:date] || read_str('Date')
 
-	amount = (args[:amount] || read_amount('Amount')).to_f
+	amount = (hargs[:amount] || read_amount('Amount')).to_f
 
-	who = args[:who] || read_str('Description')
+	who = hargs[:who] || read_str('Description')
 	model = Model::Transaction.new(id, date, amount, who)
 	model.validate(book)
 	acct.add_trans(model)
+	puts "\n#{model.class.to_s.split('::')[-1]} #{model.id} added.\n\n"
+	puts "#{Oj.dump(model, indent: 2)}" if book.verbose
+	book.company.dirty
 	model
       end
 

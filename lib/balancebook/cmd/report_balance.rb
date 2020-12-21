@@ -12,10 +12,12 @@ module BalanceBook
     class CurAmount
       attr_accessor :amount
       attr_accessor :base_amount
+      attr_accessor :currency
 
-      def initialize
+      def initialize(cur)
 	@amount = 0.0
 	@base_amount = 0.0
+	@currency = cur
       end
 
     end
@@ -48,7 +50,7 @@ module BalanceBook
 	parens = hargs.has_key?(:parens)
 	money_fmt = parens ? :money : '%.2f'
 	money_size = parens ? 11 : 10
-	table = Table.new("#{c.name} Balance Sheet #{period.last} in #{cur}", [
+	table = Table.new("#{c.name} Balance Sheet #{period.last} in #{cur.upcase}", [
 			  Col.new('', -1, :label, nil),
 			  Col.new('', money_size, :plus, money_fmt),
 			  Col.new('', money_size, :base_plus, money_fmt),
@@ -97,7 +99,8 @@ module BalanceBook
       def self.add_assets(table, book, period, cur)
 	c = book.company
 	row = GenRow.new
-	row.base_plus = cur
+	row.plus = 'Debit'
+	row.base_plus = 'Debit ' + cur.upcase
 	table.add_row(row)
 	table.add_row(Div.new('Assets'))
 
@@ -135,13 +138,12 @@ module BalanceBook
       def self.add_liabilities(table, book, period, cur)
 	c = book.company
 	row = GenRow.new
-	row.base_neg = cur
+	row.neg = 'Credit'
+	row.base_neg = 'Credit ' + cur.upcase
 	table.add_row(row)
 	table.add_row(Div.new('Liabilities'))
 
 	ap_total = add_payable_row(table, book, period, cur, false)
-
-	# TBD also per diem not paid in the future
 
 	table.add_row(nil)
 	row = GenRow.new
@@ -156,7 +158,8 @@ module BalanceBook
       def self.add_equity(table, book, period, cur)
 	c = book.company
 	row = GenRow.new
-	row.base_neg = cur
+	row.neg = 'Credit'
+	row.base_neg = 'Credit ' + cur.upcase
 	table.add_row(row)
 	table.add_row(Div.new('Equity'))
 
@@ -168,19 +171,21 @@ module BalanceBook
 	  next if period.last < d
 	  eq = eqm[e.currency]
 	  if eq.nil?
-	    eq = CurAmount.new
+	    eq = CurAmount.new(e.currency)
 	    eqm[e.currency] = eq
 	  end
-	  eq_rate = book.fx.find_rate(e.currency, period.last)
 	  eq.amount += e.amount
-	  eq.base_amount += e.amount_in_currency(book, cur)
 	}
 	eq_total = 0.0
 	eqm.each { |k,eq|
 	  row = GenRow.new
 	  row.label = "  Owner Equity #{k}"
 	  row.neg = eq.amount
+
+	  eq_rate = book.fx.find_rate(eq.currency, period.last)
+	  eq.base_amount = (eq.amount / eq_rate).round(2)
 	  row.base_neg = eq.base_amount
+
 	  table.add_row(row)
 	  eq_total += eq.base_amount
 	}

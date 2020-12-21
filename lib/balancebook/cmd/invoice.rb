@@ -17,10 +17,10 @@ module BalanceBook
       attr_accessor :currency
       attr_accessor :submitted
       attr_accessor :paid_on
-      attr_accessor :adjusted
+      attr_accessor :income
       attr_accessor :withheld
       attr_accessor :paid
-      attr_accessor :unpaid
+      attr_accessor :t2
       attr_accessor :penalty
       attr_accessor :late
       attr_accessor :is_penalty
@@ -32,19 +32,23 @@ module BalanceBook
 	  @to = inv.to
 	  @po = inv.po
 	  @amount = inv.amount
+	  @withheld = inv.withheld.to_f
 	  @base_amount = inv.amount - inv.tax
 	  @off_amount = inv.amount - (inv.tax * off.to_f / 100.0)
 	  @currency = inv.currency
 	  @submitted = inv.submitted
 	  @paid_on = inv.paid(false) # first payment is enough
 	  @paid = inv.paid_amount
-	  @unpaid = @amount - @paid
-	  @unpaid = nil if 0.0 == @unpaid
+	  #@t2 = @amount - @paid
+	  @t2 = @withheld
+	  # TBD consider if t2 has been paid back
+	  @t2 = nil if 0.0 == @t2
 	  @penalty = inv.penalty(as_of)
 	  @late = inv.days_late(as_of)
 	  @is_penalty = inv.is_penalty ? '*' : ' '
-	  @adjusted = @amount
-	  @withheld = 0.0
+	  @income = @amount - @withheld
+
+=begin
 	  unless inv.payments.nil?
 	    if 1 < inv.payments.size
 	      most = 0.0
@@ -52,15 +56,16 @@ module BalanceBook
 		lx = inv._company.find_entry(lid)
 		most = lx.amount unless lx.nil? || most < lx.amount
 	      }
-	      @adjusted = most
-	      @withheld = @amount - @adjusted
+	      @income = most
+	      @withheld = @amount - @income
 	    elsif inv.paid_in_full
-	      @adjusted = @amount
+	      @income = @amount
 	    else
-	      @adjusted = inv.paid_amount
-	      @withheld = @amount - @adjusted
+	      @income = inv.paid_amount
+	      @withheld = @amount - @income
 	    end
 	  end
+=end
 	end
 	@ansi = nil
       end
@@ -156,14 +161,14 @@ module BalanceBook
 	row = new(nil, nil)
 	row.id = "#{to} #{cur}"
 	row.is_penalty = 'P'
-	row.amount = 'Amount'
+	row.amount = 'Gross'
 	row.base_amount = 'Pre Tax'
-	row.adjusted = 'Adjusted'
+	row.income = 'Income'
 	row.withheld = 'Withheld'
 	row.submitted = 'Submitted'
 	row.paid_on = 'Paid On'
 	row.paid = 'Paid'
-	row.unpaid = 'Unpaid'
+	row.t2 = 'Pending T2'
 	row.ansi = BOLD + UNDERLINE
 	table.add_row(row)
       end
@@ -191,12 +196,12 @@ module BalanceBook
 	  Col.new('P', 1, :is_penalty, nil),
 	  Col.new('Amount', 10, :amount, '%.2f'),
 	  Col.new('Pre Tax', 10, :base_amount, '%.2f'),
-	  Col.new('Adjusted', 10, :adjusted, '%.2f'),
+	  Col.new('Income', 10, :income, '%.2f'),
 	  Col.new('Withheld', 10, :withheld, '%.2f'),
 	  Col.new('Submitted', -10, :submitted, nil),
 	  Col.new('Paid On', -10, :paid_on, nil),
-	  Col.new('Paid', -10, :paid, '%.2f'),
-	  Col.new('Unpaid', -10, :unpaid, '%.2f'),
+	  Col.new('Paid', 10, :paid, '%.2f'),
+	  Col.new('Pending T2', 10, :t2, '%.2f'),
 	]
 	unless off.nil?
 	  cols.insert(5, Col.new('83% Off', 10, :off_amount, '%.2f'))
@@ -255,7 +260,7 @@ module BalanceBook
 	      adj_penalty += inv.paid_amount
 	    end
 	    paid_total += inv.paid_amount
-	    adj_total += row.adjusted
+	    adj_total += row.income
 	    with_total += row.withheld
 	  }
 	  table.add_row(new(nil, nil))
@@ -266,7 +271,7 @@ module BalanceBook
 	  row.base_amount = total - tax
 	  row.off_amount = total - (tax * 0.83)
 	  row.paid = paid_total
-	  row.adjusted = adj_total
+	  row.income = adj_total
 	  row.withheld = with_total
 	  table.add_row(row)
 
@@ -277,7 +282,7 @@ module BalanceBook
 	    row.base_amount = total - tax - penalty
 	    row.off_amount = total - (tax * 0.83) - penalty
 	    row.paid = paid_total - paid_penalty
-	    row.adjusted = adj_total - adj_penalty
+	    row.income = adj_total - adj_penalty
 	    table.add_row(row)
 	  end
 	  table.add_row(new(nil, nil))

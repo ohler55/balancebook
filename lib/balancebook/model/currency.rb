@@ -15,6 +15,10 @@ module BalanceBook
 	@id = id
       end
 
+      def to_s
+	@id.upcase
+      end
+
       def prepare(book, fx)
 	@_fx = fx
 	# TBD create format

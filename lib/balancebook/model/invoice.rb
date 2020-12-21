@@ -12,6 +12,7 @@ module BalanceBook
       attr_accessor :po
       attr_accessor :payments
       attr_accessor :taxes # TaxAmount array
+      attr_accessor :withheld
       attr_accessor :currency
       attr_accessor :is_penalty
       attr_accessor :_book
@@ -51,6 +52,14 @@ module BalanceBook
 	sum = 0.0
 	@taxes.each { |ta| sum += ta.amount if kind.nil? || kind == ta.tax }
 	sum.round(2)
+      end
+
+      def gross
+	@amount
+      end
+
+      def income
+	@amount - @withheld.to_f
       end
 
       # Most recent payment.
@@ -140,6 +149,13 @@ module BalanceBook
 	base_rate = _book.fx.find_rate(base_cur, @submitted)
 	inv_rate = _book.fx.find_rate(@currency, @submitted)
 	(@amount * base_rate / inv_rate).round(2)
+      end
+
+      def income_in_currency(base_cur)
+	return income if @currency == base_cur
+	base_rate = _book.fx.find_rate(base_cur, @submitted)
+	inv_rate = _book.fx.find_rate(@currency, @submitted)
+	(income * base_rate / inv_rate).round(2)
       end
 
     end

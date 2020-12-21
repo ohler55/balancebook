@@ -12,7 +12,7 @@ module BalanceBook
       attr_accessor :from_tx     # from transaction
       attr_accessor :to_tx       # to transaction
       attr_accessor :ledger_loss # ledger entry for FX loss
-      attr_accessor :fx_loss        # FX loss
+      attr_accessor :fx_loss     # FX loss
       attr_accessor :note
       attr_accessor :_from
       attr_accessor :_to
