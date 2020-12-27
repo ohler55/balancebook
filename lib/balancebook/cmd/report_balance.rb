@@ -99,10 +99,12 @@ module BalanceBook
       def self.add_assets(table, book, period, cur)
 	c = book.company
 	row = GenRow.new
+	row.ansi = UNDERLINE
+	row.label = 'Assets'
 	row.plus = 'Debit'
 	row.base_plus = 'Debit ' + cur.upcase
 	table.add_row(row)
-	table.add_row(Div.new('Assets'))
+	#table.add_row(Div.new('Assets'))
 
 	total = 0.0
 	c.accounts.sort { |a,b| a <=> b }.each { |a|
@@ -138,10 +140,12 @@ module BalanceBook
       def self.add_liabilities(table, book, period, cur)
 	c = book.company
 	row = GenRow.new
+	row.ansi = UNDERLINE
+	row.label = 'Liabilities'
 	row.neg = 'Credit'
 	row.base_neg = 'Credit ' + cur.upcase
 	table.add_row(row)
-	table.add_row(Div.new('Liabilities'))
+	#table.add_row(Div.new('Liabilities'))
 
 	ap_total = add_payable_row(table, book, period, cur, false)
 
@@ -158,10 +162,12 @@ module BalanceBook
       def self.add_equity(table, book, period, cur)
 	c = book.company
 	row = GenRow.new
+	row.ansi = UNDERLINE
+	row.label = 'Equity'
 	row.neg = 'Credit'
 	row.base_neg = 'Credit ' + cur.upcase
 	table.add_row(row)
-	table.add_row(Div.new('Equity'))
+	#table.add_row(Div.new('Equity'))
 
 	base_rate = book.fx.find_rate(cur, period.last)
 	eqm = {}
