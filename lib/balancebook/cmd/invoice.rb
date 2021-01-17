@@ -42,7 +42,11 @@ module BalanceBook
 	  #@t2 = @amount - @paid
 	  @t2 = @withheld
 	  # TBD consider if t2 has been paid back
-	  @t2 = nil if 0.0 == @t2
+	  if 0.0 == @t2
+	    @t2 = nil
+	  elsif inv.refunds.is_a?(Hash)
+	    inv.refunds.each_value { |v| @t2 -= v }
+	  end
 	  @penalty = inv.penalty(as_of)
 	  @late = inv.days_late(as_of)
 	  @is_penalty = inv.is_penalty ? '*' : ' '

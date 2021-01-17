@@ -179,6 +179,7 @@ module BalanceBook
 	bank = ofx['INVSTMTMSGSRSV1']
 	bank = bank['INVSTMTTRNRS']
 	raise StandardError.new("OFX file indicated a non-OK status.") unless 0 == bank['STATUS']['CODE'].to_i
+
 	unless bank['INVSTMTRS']['INVACCTFROM']['ACCTID'] == book.acct_info[acct.id]['number']
 	  raise StandardError.new("OFX file account number mismatch.")
 	end

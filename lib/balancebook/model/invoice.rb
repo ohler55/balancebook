@@ -13,6 +13,7 @@ module BalanceBook
       attr_accessor :payments
       attr_accessor :taxes # TaxAmount array
       attr_accessor :withheld
+      attr_accessor :refunds # ledger entries as keys and amount as value (a Hash)
       attr_accessor :currency
       attr_accessor :is_penalty
       attr_accessor :_book

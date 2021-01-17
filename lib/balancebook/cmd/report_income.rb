@@ -15,12 +15,10 @@ module BalanceBook
       class Cur
 	attr_accessor :id
 	attr_accessor :amount
-	attr_accessor :base_amount
 
 	def initialize(id)
 	  @id = id
 	  @amount = 0.0
-	  @base_amount = 0.0
 	end
       end
 
@@ -40,29 +38,27 @@ module BalanceBook
 	  end
 	end
 
-	def add(e, book, cur)
+	def add(e)
 	  c = @curs[e.currency]
 	  if c.nil?
 	    c = Cur.new(e.currency)
 	    @curs[c.id] = c
 	  end
 	  c.amount += e.amount
-	  c.base_amount += e.amount_in_currency(book, cur)
 	end
 
-	def add_tx(amount, tx_cur, base_amount)
+	def add_tx(amount, tx_cur)
 	  c = @curs[tx_cur]
 	  if c.nil?
 	    c = Cur.new(tx_cur)
 	    @curs[c.id] = c
 	  end
 	  c.amount += amount
-	  c.base_amount += base_amount
 	end
 
 	def empty?
 	  @curs.each_value { |c|
-	    return false if 0.0 != c.base_amount.round(2)
+	    return false if 0.0 != c.amount.round(2)
 	  }
 	  true
 	end
@@ -174,18 +170,20 @@ module BalanceBook
 	      row = GenRow.new
 	      row.label = "    #{c.id}"
 	      row.neg = c.amount
-	      row.base_neg = c.base_amount
+	      cur_rate = book.fx.find_rate(c.id, period.last)
+	      row.base_neg = (c.amount * base_rate / cur_rate).round(2)
 	      table.add_row(row)
-	      total += c.base_amount
+	      total += row.base_neg
 	    }
 	  else
 	    c = cat.curs.values[0]
 	    row = GenRow.new
 	    row.label = "  #{cat.id} (#{c.id})"
 	    row.neg = c.amount
-	    row.base_neg = c.base_amount
+	    cur_rate = book.fx.find_rate(c.id, period.last)
+	    row.base_neg = (c.amount * base_rate / cur_rate).round(2)
 	    table.add_row(row)
-	    total += c.base_amount
+	    total += row.base_neg
 	  end
 	}
 	table.add_row(nil)
@@ -200,6 +198,7 @@ module BalanceBook
 
       def self.add_expenses(table, cats, book, period, cur)
 	c = book.company
+	base_rate = book.fx.find_rate(cur, period.last)
 	row = GenRow.new
 	row.label = 'Expenses'
 	row.base_plus = cur
@@ -221,18 +220,20 @@ module BalanceBook
 	      row = GenRow.new
 	      row.label = "    #{c.id}"
 	      row.plus = -c.amount
-	      row.base_plus = -c.base_amount
+	      cur_rate = book.fx.find_rate(c.id, period.last)
+	      row.base_plus = (-c.amount * base_rate / cur_rate).round(2)
 	      table.add_row(row)
-	      total -= c.base_amount
+	      total += row.base_plus
 	    }
 	  else
 	    c = cat.curs.values[0]
 	    row = GenRow.new
 	    row.label = "  #{cat.id} (#{c.id})"
 	    row.plus = -c.amount
-	    row.base_plus = -c.base_amount
+	    cur_rate = book.fx.find_rate(c.id, period.last)
+	    row.base_plus = (-c.amount * base_rate / cur_rate).round(2)
 	    table.add_row(row)
-	    total -= c.base_amount
+	    total += row.base_plus
 	  end
 	}
 	table.add_row(nil)
@@ -259,7 +260,7 @@ module BalanceBook
 	    cat = Cat.new(book, cid)
 	    cats[cid] = cat
 	  end
-	  cat.add(e, book, cur)
+	  cat.add(e)
 	}
 	c.accounts.each { |a|
 	  next unless Model::Account::FX_LOSS == a.kind
@@ -292,7 +293,7 @@ module BalanceBook
 	  cat = cats[k]
 	  next unless false == cat.expense
 	  next if cat.empty?
-	  next if cat.id == 'T2 Withholding'
+	  next if cat.id == 'T2 Withholding' # pre-2020
 	  next if cat.id == 'Invoice Payment'
 
 	  if 1 < cat.curs.size
@@ -304,18 +305,20 @@ module BalanceBook
 	      row = GenRow.new
 	      row.label = "    #{c.id}"
 	      row.neg = c.amount
-	      row.base_neg = c.base_amount
+	      cur_rate = book.fx.find_rate(c.id, period.last)
+	      row.base_neg = (c.amount * base_rate / cur_rate).round(2)
 	      table.add_row(row)
-	      total += c.base_amount
+	      total += row.base_neg
 	    }
 	  else
 	    cv = cat.curs.values[0]
 	    row = GenRow.new
 	    row.label = "  #{cat.id} (#{cv.id})"
 	    row.neg = cv.amount
-	    row.base_neg = cv.base_amount
+	    cur_rate = book.fx.find_rate(cv.id, period.last)
+	    row.base_neg = (cv.amount * base_rate / cur_rate).round(2)
 	    table.add_row(row)
-	    total += cv.base_amount
+	    total += row.base_neg
 	  end
 	}
 	curs = []
@@ -340,7 +343,9 @@ module BalanceBook
 		#cur_total += inv.amount
 		#base_total += inv.amount_in_currency(cur)
 		cur_total += inv.income
-		base_total += inv.income_in_currency(cur)
+		cur_rate = book.fx.find_rate(cr, period.last)
+		income = (inv.income * base_rate / cur_rate).round(2)
+		base_total += income
 	      }
 	      row = GenRow.new
 	      row.label = "    #{cr}"
@@ -358,7 +363,9 @@ module BalanceBook
 	    #cur_total += inv.amount
 	    #base_total += inv.amount_in_currency(cur)
 	    cur_total += inv.income
-	    base_total += inv.income_in_currency(cur)
+	    cur_rate = book.fx.find_rate(inv.currency, period.last)
+	    income = (inv.income * base_rate / cur_rate).round(2)
+	    base_total += income
 	  }
 	  row = GenRow.new
 	  row.label = "  Invoices (#{curs[0]})"
@@ -381,6 +388,7 @@ module BalanceBook
 
       def self.add_accrual_expenses(table, cats, book, period, cur)
 	c = book.company
+	base_rate = book.fx.find_rate(cur, period.last)
 	row = GenRow.new
 	row.label = 'Expenses'
 	row.base_plus = cur
@@ -402,18 +410,20 @@ module BalanceBook
 	      row = GenRow.new
 	      row.label = "    #{c.id}"
 	      row.plus = -c.amount
-	      row.base_plus = -c.base_amount
+	      cur_rate = book.fx.find_rate(c.id, period.last)
+	      row.base_plus = (-c.amount * base_rate / cur_rate).round(2)
 	      table.add_row(row)
-	      total -= c.base_amount
+	      total += row.base_plus
 	    }
 	  else
 	    c = cat.curs.values[0]
 	    row = GenRow.new
 	    row.label = "  #{cat.id} (#{c.id})"
 	    row.plus = -c.amount
-	    row.base_plus = -c.base_amount
+	    cur_rate = book.fx.find_rate(c.id, period.last)
+	    row.base_plus = (-c.amount * base_rate / cur_rate).round(2)
 	    table.add_row(row)
-	    total -= c.base_amount
+	    total += row.base_plus
 	  end
 	}
 	total += add_payable_row(table, book, period, cur, true)
