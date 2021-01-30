@@ -242,6 +242,7 @@ module BalanceBook
 	  adj_total = 0.0
 	  adj_penalty = 0.0
 	  with_total = 0.0
+	  t2_total = 0.0
 
 	  book.company.invoices.reverse.each { |inv|
 	    date = Date.parse(inv.submitted)
@@ -266,6 +267,7 @@ module BalanceBook
 	    paid_total += inv.paid_amount
 	    adj_total += row.income
 	    with_total += row.withheld
+	    t2_total += row.t2 unless row.t2.nil?
 	  }
 	  table.add_row(new(nil, nil))
 
@@ -277,6 +279,7 @@ module BalanceBook
 	  row.paid = paid_total
 	  row.income = adj_total
 	  row.withheld = with_total
+	  row.t2 = t2_total
 	  table.add_row(row)
 
 	  if 0.0 < paid_penalty
