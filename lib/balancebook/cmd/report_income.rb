@@ -272,7 +272,8 @@ module BalanceBook
 	  a.transactions.each { |tx|
 	    d = Date.parse(tx.date)
 	    next unless period.in_range(d)
-	    cat.add_tx(tx.amount, a.currency, a.amount_in_currency(book, tx.amount, cur, tx.date))
+	    cat.add_tx(tx.amount, a.currency)
+	    #cat.add_tx(tx.amount, a.currency, a.amount_in_currency(book, tx.amount, cur, tx.date))
 	  }
 	}
 	cats
