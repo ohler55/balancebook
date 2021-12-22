@@ -42,11 +42,14 @@ module BalanceBook
 	  #@t2 = @amount - @paid
 	  @t2 = @withheld
 	  # TBD consider if t2 has been paid back
-	  if 0.0 == @t2
-	    @t2 = nil
-	  elsif inv.refunds.is_a?(Hash)
-	    inv.refunds.each_value { |v| @t2 -= v }
+	  if inv.refunds.is_a?(Array)
+	    inv.refunds.each { |lid|
+	      # TBD put in model invoice
+	      lx = inv._company.find_entry(lid)
+	      @t2 -= lx.amount
+	    }
 	  end
+	  @t2 = nil if 0.0 == @t2
 	  @penalty = inv.penalty(as_of)
 	  @late = inv.days_late(as_of)
 	  @is_penalty = inv.is_penalty ? '*' : ' '
@@ -360,19 +363,23 @@ module BalanceBook
 	  return
 	end
 
+	outstanding = inv.outstanding
 	if partial
 	  candidates = c.ledger.select { |lx|
 	    lx.amount <= inv.amount && inv.submitted <= lx.date && lx.category == 'Invoice Payment' && !a_payment?(c, lx)
 	  }.map { |lx| lx.id.to_s }
 	else
-	  candidates = c.ledger.select { |lx| lx.amount == inv.amount && inv.submitted <= lx.date}.map { |lx| lx.id.to_s }
+	  candidates = c.ledger.select { |lx| lx.amount == outstanding && inv.submitted <= lx.date}.map { |lx| lx.id.to_s }
 	end
 	lid = extract_arg(:lid, "Ledger Entry ID", args, hargs, candidates).to_i
 	lx = c.find_entry(lid)
 	raise StandardError.new("Failed to find ledger entry #{lid}.") unless candidates.include?(lid.to_s)
 	raise StandardError.new("Invoice payments already includes ledger entry #{lid}.") if inv.payments.include?(lid)
-	inv.pay(lid)
-
+	if lx.category.downcase.include?('refund')
+	  inv.refund(lid)
+	else
+	  inv.pay(lid)
+	end
 	puts "\nPayment of #{lx.amount} to #{id} made.\n\n"
 	book.company.dirty
       end

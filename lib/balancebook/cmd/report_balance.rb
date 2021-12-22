@@ -189,7 +189,7 @@ module BalanceBook
 	  row.neg = eq.amount
 
 	  eq_rate = book.fx.find_rate(eq.currency, period.last)
-	  eq.base_amount = (eq.amount / eq_rate).round(2)
+	  eq.base_amount = (eq.amount / eq_rate * base_rate).round(2)
 	  row.base_neg = eq.base_amount
 
 	  table.add_row(row)

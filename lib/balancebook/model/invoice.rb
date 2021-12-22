@@ -13,7 +13,7 @@ module BalanceBook
       attr_accessor :payments
       attr_accessor :taxes # TaxAmount array
       attr_accessor :withheld
-      attr_accessor :refunds # ledger entries as keys and amount as value (a Hash)
+      attr_accessor :refunds
       attr_accessor :currency
       attr_accessor :is_penalty
       attr_accessor :_book
@@ -23,6 +23,7 @@ module BalanceBook
 	@_book = book
 	@_company = company
 	@payments = [] if @payments.nil?
+	@refunds = [] if @refunds.nil?
       end
 
       def validate(book)
@@ -85,6 +86,12 @@ module BalanceBook
 	  recent = pd if recent.nil? || recent < pd
 	  sum += lx.amount
 	}
+	@refunds.each { |lid|
+	  lx = @_company.find_entry(lid)
+	  pd = Date.parse(lx.date)
+	  recent = pd if recent.nil? || recent < pd
+	  sum += lx.amount
+	}
 	recent = nil unless !full || @amount == sum
 	recent
       end
@@ -100,13 +107,26 @@ module BalanceBook
 	  lx = @_company.find_entry(lid)
 	  sum += lx.amount
 	}
+	@refunds.each { |lid|
+	  lx = @_company.find_entry(lid)
+	  sum += lx.amount
+	}
 	sum
+      end
+
+      def outstanding
+	@amount - paid_amount
       end
 
       def paid_amount_by(date)
 	return 0.0 if @payments.nil?
 	sum = 0.0
 	@payments.each { |p|
+	  lx = @_company.find_entry(p)
+	  pd = Date.parse(lx.date)
+	  sum += lx.amount if pd <= date
+	}
+	@refunds.each { |p|
 	  lx = @_company.find_entry(p)
 	  pd = Date.parse(lx.date)
 	  sum += lx.amount if pd <= date
@@ -124,6 +144,11 @@ module BalanceBook
       def pay(lx)
 	@payments = [] if @payments.nil?
 	@payments << lx
+      end
+
+      def refund(lid)
+	@refunds = [] if @refunds.nil?
+	@refunds << lid
       end
 
       def days_late(as_of=nil)
