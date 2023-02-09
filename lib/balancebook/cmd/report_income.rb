@@ -341,12 +341,13 @@ module BalanceBook
 		d = Date.parse(inv.submitted)
 		next unless period.in_range(d)
 		next unless inv.currency == cr
-		#cur_total += inv.amount
-		#base_total += inv.amount_in_currency(cur)
-		cur_total += inv.income
-		cur_rate = book.fx.find_rate(cr, period.last)
-		income = (inv.income * base_rate / cur_rate).round(2)
-		base_total += income
+		cur_total += inv.amount
+		base_total += inv.amount_in_currency(cur)
+                # to exclude withheld...
+		#cur_total += inv.income
+		#cur_rate = book.fx.find_rate(cr, period.last)
+		#income = (inv.income * base_rate / cur_rate).round(2)
+		#base_total += income
 	      }
 	      row = GenRow.new
 	      row.label = "    #{cr}"
@@ -361,12 +362,13 @@ module BalanceBook
 	  c.invoices.each { |inv|
 	    d = Date.parse(inv.submitted)
 	    next unless period.in_range(d)
-	    #cur_total += inv.amount
-	    #base_total += inv.amount_in_currency(cur)
-	    cur_total += inv.income
-	    cur_rate = book.fx.find_rate(inv.currency, period.last)
-	    income = (inv.income * base_rate / cur_rate).round(2)
-	    base_total += income
+	    cur_total += inv.amount
+	    base_total += inv.amount_in_currency(cur)
+            # to exclude withheld...
+	    #cur_total += inv.income
+	    #cur_rate = book.fx.find_rate(inv.currency, period.last)
+	    #income = (inv.income * base_rate / cur_rate).round(2)
+	    #base_total += income
 	  }
 	  row = GenRow.new
 	  row.label = "  Invoices (#{curs[0]})"

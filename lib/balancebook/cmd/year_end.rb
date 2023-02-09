@@ -43,6 +43,41 @@ module BalanceBook
 	ar_total
       end
 
+      def add_withheld_row(table, book, period, cur, left)
+	c = book.company
+	base_rate = book.fx.find_rate(cur, period.last)
+	wh_total = 0.0
+	arm = {}
+	c.invoices.each { |inv|
+          due = inv.outstanding
+	  d = Date.parse(inv.submitted)
+	  #out = inv.amount - inv.paid_amount_by(period.last)
+	  next if due <= 0.0
+	  ar = arm[inv.currency]
+	  if ar.nil?
+	    ar = CurAmount.new(inv.currency)
+	    arm[inv.currency] = ar
+	  end
+	  inv_rate = book.fx.find_rate(inv.currency, period.last)
+	  ar.amount += due
+	  ar.base_amount += (due * base_rate / inv_rate).round(2)
+	}
+	arm.each { |k,ar|
+	  row = GenRow.new
+	  row.label = "  Withheld Receivable #{k}"
+	  if left
+	    row.plus = ar.amount
+	    row.base_plus = ar.base_amount
+	  else
+	    row.neg = ar.amount
+	    row.base_neg = ar.base_amount
+	  end
+	  table.add_row(row)
+	  wh_total += ar.base_amount
+	}
+	wh_total
+      end
+
       def add_previous_year_row(table, book, period, cur, left)
 	sum = 0.0
 	c = book.company

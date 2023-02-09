@@ -127,6 +127,10 @@ module BalanceBook
 	table.add_row(nil)
 	ar_total = add_receivables_row(table, book, period, cur, true)
 
+        # To include the withheld amounts uncomment below.
+	#table.add_row(nil)
+	#ar_total = add_withheld_row(table, book, period, cur, true)
+
 	table.add_row(nil)
 	row = GenRow.new
 	row.label = '  Accrual Total'
