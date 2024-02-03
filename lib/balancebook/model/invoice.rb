@@ -24,6 +24,7 @@ module BalanceBook
 	@_company = company
 	@payments = [] if @payments.nil?
 	@refunds = [] if @refunds.nil?
+        @amount = @amount.round(2)
       end
 
       def validate(book)
@@ -105,13 +106,13 @@ module BalanceBook
 	sum = 0.0
 	@payments.each { |lid|
 	  lx = @_company.find_entry(lid)
-	  sum += lx.amount
+	  sum += lx.amount.round(2)
 	}
 	@refunds.each { |lid|
 	  lx = @_company.find_entry(lid)
-	  sum += lx.amount
+	  sum += lx.amount.round(2)
 	}
-	sum
+	sum.round(2)
       end
 
       def outstanding
@@ -124,12 +125,12 @@ module BalanceBook
 	@payments.each { |p|
 	  lx = @_company.find_entry(p)
 	  pd = Date.parse(lx.date)
-	  sum += lx.amount if pd <= date
+	  sum += lx.amount.round(2) if pd <= date
 	}
 	@refunds.each { |p|
 	  lx = @_company.find_entry(p)
 	  pd = Date.parse(lx.date)
-	  sum += lx.amount if pd <= date
+	  sum += lx.amount.round(2) if pd <= date
 	}
 	sum
       end
