@@ -295,6 +295,7 @@ module BalanceBook
 	  next unless false == cat.expense
 	  next if cat.empty?
 	  next if cat.id == 'T2 Withholding' # pre-2020
+	  next if cat.id == 'T2 Refund'
 	  next if cat.id == 'Invoice Payment'
 
 	  if 1 < cat.curs.size
