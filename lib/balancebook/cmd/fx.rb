@@ -71,6 +71,7 @@ module BalanceBook
 	    end
 	  }
 	  next unless need
+          puts "url: #{u}"
 	  content = Net::HTTP.get(URI(u))
 	  h = Oj.load(content)
 	  raise StandardError.new(h.to_s) if h['success'] != true
@@ -82,7 +83,8 @@ module BalanceBook
 	      c.rates.delete_if { |x| x.date == ds }
 	      c.rates << rate
 	      puts "updated fx rate for #{c.id} on #{ds}" if $verbose
-	    }
+	  }
+          sleep(1)
 	}
 	book.fx.currencies.each { |c| c.sort }
 	book.fx.dirty
