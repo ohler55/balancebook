@@ -24,5 +24,6 @@ Gem::Specification.new do |s|
 
   s.required_ruby_version = '>= 2.6.4'
 
-  s.add_development_dependency 'oj', '~> 3.9'
+  s.add_dependency "oj", ">= 3.17.3"
+  s.add_development_dependency 'oj', '>= 3.17.3'
 end
